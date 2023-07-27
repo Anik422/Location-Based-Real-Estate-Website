@@ -1,23 +1,27 @@
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useImmerReducer } from 'use-immer';
+
 //react leaflet
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon } from 'react-leaflet'
-import { Icon } from 'leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMap} from 'react-leaflet';
+import { Icon } from 'leaflet';
 
 //MUI 
-import { Grid, AppBar, Typography, Button, Card, CardHeader, CardMedia, CardContent, CircularProgress } from '@mui/material'
-import { makeStyles } from 'tss-react/mui'
+import { Grid, AppBar, Typography, Button, Card, CardHeader, CardMedia, CardContent, CircularProgress, IconButton } from '@mui/material';
+import { makeStyles } from 'tss-react/mui';
+import RoomIcon from '@mui/icons-material/Room';
+
 
 //map icons
-import houseIconPng from './Assets/Mapicons/house.png'
-import apartmentIconPng from './Assets/Mapicons/apartment.png'
-import officeIconPng from './Assets/Mapicons/office.png'
+import houseIconPng from './Assets/Mapicons/house.png';
+import apartmentIconPng from './Assets/Mapicons/apartment.png';
+import officeIconPng from './Assets/Mapicons/office.png';
 
 
 
 //DummyData
 // import myListing from './Assets/Data/Dummydata'
-import polygonOne from './Shape'
+// import polygonOne from './Shape'
 
 //url import
 import urls from './URLS';
@@ -73,6 +77,31 @@ function Listings() {
   });
 
 
+  const initialstate = {
+    mapInstance: null,
+  };
+
+  function ReduceFunction(draft, action) {
+    switch (action.type) {
+      case 'getMap':
+        draft.mapInstance = action.mapData;
+        break;
+      default:
+        break;
+    }
+  };
+
+  const [state, dispatch] = useImmerReducer(ReduceFunction, initialstate);
+
+
+  function TheMapComponent() {
+    const map = useMap()
+    dispatch({ type: 'getMap', mapData: map });
+    return null
+  };
+
+
+
 
   const polylineOne = [
     [51.505, -0.09],
@@ -89,11 +118,11 @@ function Listings() {
   useEffect(() => {
     const source = axios.CancelToken.source();
     async function GetAllListing() {
-      try{
-        const response = await axios.get(urls.listings, {cancelToken: source.token});
+      try {
+        const response = await axios.get(urls.listings, { cancelToken: source.token });
         setAllListings(response.data);
         setDataIsLoading(false);
-      }catch(error){
+      } catch (error) {
         console.log(error);
       }
     }
@@ -102,12 +131,12 @@ function Listings() {
       source.cancel();
     }
   }, [])
-  if( dataIsLoading === false){
+  if (dataIsLoading === false) {
     console.log(allListings[0].location);
   }
-  if( dataIsLoading === true){
-    return(
-      <Grid container justifyContent='center' alignItems='center' style={{height: '100vh'}}>
+  if (dataIsLoading === true) {
+    return (
+      <Grid container justifyContent='center' alignItems='center' style={{ height: '100vh' }}>
         <CircularProgress />
       </Grid>
     )
@@ -117,14 +146,19 @@ function Listings() {
       <Grid item xs={4} data-aos="zoom-in-up">
         {allListings.map((listing) => {
           return (
-            <Card 
-            key={listing.id} 
-            className={classes.cardStyle}
-            data-aos="fade-up"
-            data-aos-anchor-placement="top-bottom"
-            data-aos-duration="1500"
+            <Card
+              key={listing.id}
+              className={classes.cardStyle}
+              data-aos="fade-up"
+              data-aos-anchor-placement="top-bottom"
+              data-aos-duration="1500"
             >
               <CardHeader
+                action={
+                  <IconButton aria-label="settings" onClick={() => state.mapInstance.flyTo([listing.latitude, listing.longitude], 16)}>
+                    <RoomIcon />
+                  </IconButton>
+                }
                 title={listing.title}
               />
               <CardMedia
@@ -163,6 +197,9 @@ function Listings() {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
+
+              <TheMapComponent />
+
               {allListings.map((listing) => {
                 const IconDisplay = () => {
                   if (listing.listing_type === 'House') {
