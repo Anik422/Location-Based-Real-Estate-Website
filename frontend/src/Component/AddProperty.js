@@ -53,6 +53,7 @@ import Redbridge from "./Assets/Boroughs/Redbridge";
 import Richmond from "./Assets/Boroughs/Richmond";
 import Sutton from "./Assets/Boroughs/Sutton";
 import Waltham from "./Assets/Boroughs/Waltham";
+import { type } from '@testing-library/user-event/dist/type';
 
 
 
@@ -343,6 +344,10 @@ function AddProperty() {
         },
         uploadedPictures: [],
         sendRequest: 0,
+        userProfile: {
+            agencyName: '',
+            phoneNumber: '',
+        }
     };
 
     function ReduceFunction(draft, action) {
@@ -426,6 +431,10 @@ function AddProperty() {
             case 'changeSendRequest':
                 draft.sendRequest = draft.sendRequest + 1;
                 break;
+            case 'catchUserProfileInfo':
+                draft.userProfile.agencyName = action.profile.agency_name;
+                draft.userProfile.phoneNumber = action.profile.phone_number;
+                break;
             default:
                 break;
         }
@@ -438,7 +447,7 @@ function AddProperty() {
 
 
     function TheMapComponent() {
-        const map = useMap()
+        const map = useMap();
         dispatch({ type: 'getMap', mapData: map });
         return null
     };
@@ -799,6 +808,31 @@ function AddProperty() {
         }
     }, [state.uploadedPictures[4]]);
 
+
+    // request to get profile info
+    useEffect(() => {
+        // const source = axios.CancelToken.source();
+        async function GetProfileInfo() {
+            try {
+
+                const profile_url = urls.profiles + `${globalState.userId}/`;
+                console.log(profile_url);
+                const response = await axios.get(
+                    profile_url
+                );
+                dispatch({ type: 'catchUserProfileInfo', profile: response.data })
+                console.log(response);
+            } catch (e) {
+                console.log(e.response)
+            }
+        }
+        GetProfileInfo();
+        // return () => {
+        //     source.cancel();
+        // }
+    }, [])
+
+
     //Form submit function
     function fromSubmit(e) {
         e.preventDefault();
@@ -845,7 +879,7 @@ function AddProperty() {
                 } catch (e) {
                     console.log(e.response);
                 }
-                
+
             };
             addProperty();
             return () => {
@@ -871,6 +905,40 @@ function AddProperty() {
             return 'Price';
         }
     };
+
+
+    function submitButtonDisplay() {
+        console.log(globalState.userIsLogged , state.userProfile.agencyName, state.userProfile.phoneNumber);
+        if (globalState.userIsLogged && state.userProfile.agencyName !== null && state.userProfile.agencyName !== '' && state.userProfile.phoneNumber !== null && state.userProfile.phoneNumber !== '') {
+            return (
+                <Button variant='contained'
+                    type='submit'
+                    fullWidth
+                    className={classes.registerBtn}>
+                    SUBMIT
+                </Button>
+            )
+        }
+        else if (globalState.userIsLogged && state.userProfile.agencyName === null || state.userProfile.agencyName === '' && state.userProfile.phoneNumber === null || state.userProfile.phoneNumber === '') {
+            return (
+                <Button variant='outlined'
+                    fullWidth
+                    className={classes.registerBtn}>
+                    COMPLITE YOUR PROFILE TO ADD PROPERTY
+                </Button>
+            )
+        }
+        else if (!globalState.userIsLogged) {
+            return (
+                <Button variant='outlined'
+                    onClick={() => usenavigate('/login')}
+                    fullWidth
+                    className={classes.registerBtn}>
+                    SIGN IN TO ADD A PROPERTY
+                </Button>
+            )
+        }
+    }
 
     return (
         <div className={classes.fromContainer} data-aos="zoom-in-up">
@@ -1178,13 +1246,9 @@ function AddProperty() {
                 </Grid>
 
                 <Grid item container xs={8} style={{ marginTop: '1rem', marginLeft: 'auto', marginRight: 'auto' }}>
-                    <Button
-                        className={classes.registerBtn}
-                        variant='contained'
-                        fullWidth type='submit'>SUBMIT</Button>
+                    {submitButtonDisplay()}
                 </Grid>
             </form>
-            <Button onClick={() => console.log(state.uploadedPictures)}>Test Button</Button>
         </div>
     );
 }

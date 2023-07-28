@@ -5,6 +5,7 @@ const urls = {
     'creat_user' :'http://127.0.0.1:8000/api-auth-djoser/users/',
     'listings' : 'http://127.0.0.1:8000/api/listings/',
     'listingCreate' : 'http://127.0.0.1:8000/api/listing/create/',
+    'profiles': 'http://127.0.0.1:8000/api/profiles/',
 };
 
 export default urls;

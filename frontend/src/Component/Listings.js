@@ -3,11 +3,11 @@ import axios from 'axios';
 import { useImmerReducer } from 'use-immer';
 
 //react leaflet
-import { MapContainer, TileLayer, Marker, Popup, useMap} from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { Icon } from 'leaflet';
 
 //MUI 
-import { Grid, AppBar, Typography, Button, Card, CardHeader, CardMedia, CardContent, CircularProgress, IconButton } from '@mui/material';
+import { Grid, AppBar, Typography, Button, Card, CardHeader, CardMedia, CardContent, CircularProgress, IconButton, CardActions } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import RoomIcon from '@mui/icons-material/Room';
 
@@ -185,6 +185,11 @@ function Listings() {
                     ${listing.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} / {listing.rental_frequency}
                   </Typography>
                 )}
+              <CardActions disableSpacing>
+                <IconButton aria-label="add to favorites">
+                 {listing.seller_username}
+                </IconButton>
+              </CardActions>
             </Card>
           )
         })}

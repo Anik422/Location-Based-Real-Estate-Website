@@ -102,7 +102,7 @@ function Register() {
                         { cancelToken: source.token }
                       );
                     //   console.log(response.data);
-                    navigator("/");
+                    usenavigate("/");
                 } catch (error) {
                     console.log(error);
                 }
