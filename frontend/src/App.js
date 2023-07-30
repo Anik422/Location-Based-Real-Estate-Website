@@ -10,9 +10,9 @@ import Header from './Component/Header';
 import Home from './Component/Home';
 import Login from './Component/Login';
 import Listings from './Component/Listings';
-import Testing from './Component/Testing';
 import Register from './Component/Register';
 import AddProperty from './Component/AddProperty';
+import Profile from './Component/Profile';
 
 
 import AOS from 'aos';
@@ -84,7 +84,7 @@ function App() {
               <Route path='/register' element={<Register />} />
               <Route path='/losting' element={<Listings />} />
               <Route path='/addproperty' element={<AddProperty />} />
-              <Route path='/testing' element={<Testing />} />
+              <Route path='/profile' element={<Profile />} />
             </Routes>
           </BrowserRouter>
         </StyledEngineProvider>
