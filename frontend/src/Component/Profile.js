@@ -1,12 +1,12 @@
 import React, { useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
 //immer
 import { useImmerReducer } from 'use-immer';
 
 //MUI 
-import { Grid, Typography, CircularProgress } from '@mui/material';
+import { Grid, Typography, CircularProgress, Button } from '@mui/material';
 
 
 //url import
@@ -29,6 +29,7 @@ import ProfileUpdate from './ProfileUpdate';
 function Profile() {
 
     const globalState = useContext(StateContext);
+    const usenavigate = useNavigate();
 
     const initialstate = {
         dataIsLoading: true,
@@ -37,6 +38,8 @@ function Profile() {
             phoneNumber: '',
             profilePic: '',
             bio: '',
+            sellerId: '',
+            sellerListing: []
         }
     };
 
@@ -47,6 +50,8 @@ function Profile() {
                 draft.userProfile.phoneNumber = action.profile.phone_number;
                 draft.userProfile.bio = action.profile.bio;
                 draft.userProfile.profilePic = action.profile.profile_picture;
+                draft.userProfile.sellerListing = action.profile.seller_listings;
+                draft.userProfile.sellerId = action.profile.seller;
                 break;
             case 'loadingDone':
                 draft.dataIsLoading = false;
@@ -107,6 +112,18 @@ function Profile() {
     }, [state.sendRequest]);
 
 
+
+    function PropertiesDisplay() {
+        if (state.userProfile.sellerListing.length === 0) {
+            return <Button disabled size="small">No Property</Button>
+        }
+        else if (state.userProfile.sellerListing.length === 1) {
+            return <Button onClick={() => usenavigate(`/agencies/${state.userProfile.sellerId}`)} size="small">One Property Listed</Button>
+        }
+        else {
+            return <Button onClick={() => usenavigate(`/agencies/${state.userProfile.sellerId}`)} size="small">{state.userProfile.sellerListing.length} Properties</Button>
+        }
+    }
 
 
     function WelcomeDisplay() {
@@ -175,7 +192,7 @@ function Profile() {
                                 variant='h5'
                                 style={{ textAlign: 'center', marginTop: '1rem' }}
                             >
-                                You have x properties listed
+                                You have {PropertiesDisplay()}
                             </Typography>
                         </Grid>
                     </Grid>

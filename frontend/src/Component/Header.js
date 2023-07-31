@@ -9,8 +9,6 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
 import Slide from '@mui/material/Slide';
 
 
@@ -150,7 +148,10 @@ function Header() {
                             Listing
                         </Typography>
                     </Button>
-                    <Button color="inherit" style={{ marginLeft: '2rem' }} >
+                    <Button 
+                    onClick={() => navigate("/agencies")}
+                    color="inherit" 
+                    style={{ marginLeft: '2rem' }} >
                         <Typography variant='h6'>
                             Agencies
                         </Typography>

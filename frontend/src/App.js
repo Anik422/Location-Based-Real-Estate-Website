@@ -13,6 +13,8 @@ import Listings from './Component/Listings';
 import Register from './Component/Register';
 import AddProperty from './Component/AddProperty';
 import Profile from './Component/Profile';
+import Agencies from './Component/Agencies';
+import AgencyDetail from './Component/AgencyDetail';
 
 
 import AOS from 'aos';
@@ -85,6 +87,8 @@ function App() {
               <Route path='/losting' element={<Listings />} />
               <Route path='/addproperty' element={<AddProperty />} />
               <Route path='/profile' element={<Profile />} />
+              <Route path='/agencies' element={<Agencies />} />
+              <Route path='/agencies/:id' element={<AgencyDetail />} />
             </Routes>
           </BrowserRouter>
         </StyledEngineProvider>

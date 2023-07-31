@@ -1,4 +1,5 @@
 const urls = {
+    'path': 'http://127.0.0.1:8000',
     'login' : 'http://127.0.0.1:8000/api-auth-djoser/token/login/',
     'logout' : 'http://127.0.0.1:8000/api-auth-djoser/token/logout/',
     'user_info' : 'http://127.0.0.1:8000/api-auth-djoser/users/me/',
