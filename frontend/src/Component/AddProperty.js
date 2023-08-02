@@ -53,7 +53,7 @@ import Redbridge from "./Assets/Boroughs/Redbridge";
 import Richmond from "./Assets/Boroughs/Richmond";
 import Sutton from "./Assets/Boroughs/Sutton";
 import Waltham from "./Assets/Boroughs/Waltham";
-import { type } from '@testing-library/user-event/dist/type';
+
 
 
 
@@ -847,6 +847,7 @@ function AddProperty() {
                 const fromData = new FormData();
                 fromData.append('title', state.titleValue);
                 fromData.append('description', state.descriptionValue);
+                fromData.append('area', state.areaValue);
                 fromData.append('borough', state.boroughValue);
                 fromData.append('listing_type', state.listingTypeValue);
                 fromData.append('property_status', state.propertyStatusValue);
@@ -875,7 +876,7 @@ function AddProperty() {
                         }
                     );
                     // console.log(response);
-                    usenavigate('/losting')
+                    usenavigate('/listings')
                 } catch (e) {
                     console.log(e.response);
                 }
@@ -909,7 +910,11 @@ function AddProperty() {
 
     function submitButtonDisplay() {
         console.log(globalState.userIsLogged , state.userProfile.agencyName, state.userProfile.phoneNumber);
-        if (globalState.userIsLogged && state.userProfile.agencyName !== null && state.userProfile.agencyName !== '' && state.userProfile.phoneNumber !== null && state.userProfile.phoneNumber !== '') {
+        if (globalState.userIsLogged && 
+            state.userProfile.agencyName !== null && 
+            state.userProfile.agencyName !== '' && 
+            state.userProfile.phoneNumber !== null && 
+            state.userProfile.phoneNumber !== '') {
             return (
                 <Button variant='contained'
                     type='submit'
@@ -919,7 +924,11 @@ function AddProperty() {
                 </Button>
             )
         }
-        else if (globalState.userIsLogged && state.userProfile.agencyName === null || state.userProfile.agencyName === '' && state.userProfile.phoneNumber === null || state.userProfile.phoneNumber === '') {
+        else if (globalState.userIsLogged && 
+            (state.userProfile.agencyName === null || 
+            state.userProfile.agencyName === '' ) && (
+            state.userProfile.phoneNumber === null || 
+            state.userProfile.phoneNumber === '')) {
             return (
                 <Button variant='outlined'
                     fullWidth

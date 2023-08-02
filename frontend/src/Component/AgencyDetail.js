@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
 import { useParams, } from 'react-router-dom';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 //immer
 import { useImmerReducer } from 'use-immer';
 
 //MUI 
-import { Grid, Typography, Button, Card, CardMedia, CardContent, CardActions, CircularProgress, IconButton } from '@mui/material';
+import { Grid, Typography, Card, CardMedia, CardContent, CardActions, CircularProgress, IconButton } from '@mui/material';
 import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
 
 
@@ -30,6 +31,7 @@ import defaultProfilePictue from './Assets/defaultProfilePicture.jpg'
 function AgencyDetail() {
 
     const params = useParams();
+    const usenavigate = useNavigate();
 
     const initialstate = {
         dataIsLoading: true,
@@ -108,11 +110,14 @@ function AgencyDetail() {
                 }}
             >
                 <Grid item xs={6}>
-                    <img
+                    <input
+                        type="image"
+                        img
                         style={{ height: "10rem", width: "15rem" }}
                         src={
                             state.userProfile.profilePic !== null ? state.userProfile.profilePic : defaultProfilePictue
                         }
+                        alt='agency image'
                     />
                 </Grid>
                 <Grid
@@ -129,7 +134,7 @@ function AgencyDetail() {
                             style={{ textAlign: 'center', marginTop: '1rem' }}
                         >
                             <span
-                                style={{ color: 'green', fontWeight: 'bolder', cursor: 'pointer', textTransform: 'uppercase' }}
+                                style={{ color: 'green', fontWeight: 'bolder', textTransform: 'uppercase' }}
                             >
                                 {state.userProfile.agencyName}
                             </span>
@@ -175,9 +180,21 @@ function AgencyDetail() {
                                     sx={{ height: 140 }}
                                     image={`${urls.path}${listing.picture1}` !== null ? `${urls.path}${listing.picture1}` : defaultProfilePictue}
                                     title="image"
+                                    onClick={() => {
+                                        usenavigate(`/listings/${listing.id}`)
+                                    }}
+                                    style={{ cursor: 'pointer' }}
                                 />
                                 <CardContent>
-                                    <Typography gutterBottom variant="h5" component="div" style={{ textTransform: 'uppercase' }}>
+                                    <Typography
+                                        gutterBottom
+                                        variant="h5"
+                                        component="div"
+                                        style={{ textTransform: 'uppercase', cursor: 'pointer' }}
+                                        onClick={() => {
+                                            usenavigate(`/listings/${listing.id}`)
+                                        }}
+                                    >
                                         {listing.title}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">

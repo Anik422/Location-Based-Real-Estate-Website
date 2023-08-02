@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useImmerReducer } from 'use-immer';
+import { useNavigate } from 'react-router-dom';
 
 //react leaflet
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
@@ -38,7 +39,8 @@ const useStyle = makeStyles()(() => ({
     paddingRight: "1rem",
     paddingLeft: "1rem",
     height: '20rem',
-    width: "30rem"
+    width: "30rem",
+    cursor: 'pointer'
   },
   priceOverlay: {
     position: "absolute",
@@ -61,6 +63,8 @@ function Listings() {
   //   .then(response => response.json())
   //   .then(data => console.log(data));
 
+  const { classes } = useStyle();
+  const usenavigate = useNavigate();
 
 
   const houseIcon = new Icon({
@@ -102,8 +106,6 @@ function Listings() {
 
 
 
-
-  const { classes } = useStyle();
 
 
   const [allListings, setAllListings] = useState([]);
@@ -161,6 +163,9 @@ function Listings() {
                 component="img"
                 image={listing.picture1}
                 alt={listing.title}
+                onClick={() => {
+                  usenavigate(`/listings/${listing.id}`)
+                }}
               />
               <CardContent>
                 <Typography variant="body2" color="text.secondary">
@@ -180,8 +185,13 @@ function Listings() {
                   </Typography>
                 )}
               <CardActions disableSpacing>
-                <IconButton aria-label="add to favorites">
-                 {listing.seller_agency_name}
+                <IconButton
+                  aria-label="add to favorites"
+                  onClick={() => {
+                    usenavigate(`/agencies/${listing.seller}`)
+                  }}
+                >
+                  {listing.seller_agency_name}
                 </IconButton>
               </CardActions>
             </Card>
@@ -216,9 +226,26 @@ function Listings() {
                     position={[listing.latitude, listing.longitude,]}>
                     <Popup>
                       <Typography variant='h5' >{listing.title}</Typography>
-                      <input type="image" img alt='image' src={listing.picture1} style={{ height: "14rem", width: "18rem" }} />
+                      <input
+                        type="image"
+                        img
+                        alt='image'
+                        src={listing.picture1}
+                        style={{ height: "14rem", width: "18rem", cursor: 'pointer' }}
+                        onClick={() => {
+                          usenavigate(`/listings/${listing.id}`)
+                        }}
+                      />
                       <Typography variant='body1' >{listing.description.substring(0, 150)}...</Typography>
-                      <Button variant='contained' fullWidth>Details</Button>
+                      <Button
+                        variant='contained'
+                        fullWidth
+                        onClick={() => {
+                          usenavigate(`/listings/${listing.id}`)
+                        }}
+                      >
+                        Details
+                      </Button>
                     </Popup>
                   </Marker>
                 )

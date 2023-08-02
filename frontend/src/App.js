@@ -10,11 +10,13 @@ import Header from './Component/Header';
 import Home from './Component/Home';
 import Login from './Component/Login';
 import Listings from './Component/Listings';
+import ListingDetail from './Component/ListingDetail';
 import Register from './Component/Register';
 import AddProperty from './Component/AddProperty';
 import Profile from './Component/Profile';
 import Agencies from './Component/Agencies';
 import AgencyDetail from './Component/AgencyDetail';
+
 
 
 import AOS from 'aos';
@@ -84,7 +86,8 @@ function App() {
               <Route path='/' element={<Home />} />
               <Route path='/login' element={<Login />} />
               <Route path='/register' element={<Register />} />
-              <Route path='/losting' element={<Listings />} />
+              <Route path='/listings' element={<Listings />} />
+              <Route path='/listings/:id' element={<ListingDetail />} />
               <Route path='/addproperty' element={<AddProperty />} />
               <Route path='/profile' element={<Profile />} />
               <Route path='/agencies' element={<Agencies />} />

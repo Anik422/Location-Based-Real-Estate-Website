@@ -143,7 +143,7 @@ function Header() {
                     </Button>
                 </div>
                 <div>
-                    <Button color="inherit" style={{ marginRight: '2rem' }} onClick={() => navigate("/losting")}>
+                    <Button color="inherit" style={{ marginRight: '2rem' }} onClick={() => navigate("/listings")}>
                         <Typography variant='h6'>
                             Listing
                         </Typography>

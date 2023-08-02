@@ -33,7 +33,7 @@ class Listing(models.Model):
     choices_rental_frequency = (
         ("Month", "Month"),
         ("Week", "Week"),
-        ("Day", "Day"),
+        ("Day", "Day"), 
     )
     rental_frequency = models.CharField(max_length=50, blank=True, null=True, choices=choices_rental_frequency)
     rooms = models.IntegerField(blank=True, null=True)
@@ -57,3 +57,21 @@ class Listing(models.Model):
 
 
 
+class Poi(models.Model):
+    name = models.CharField(max_length=150, blank=True, null=True)
+    choices_type = (
+        ("University", "University"),
+        ("Hospital", "Hospital"),
+        ("Stadium", "Stadium"), 
+    )
+    type = models.CharField(max_length=100, choices=choices_type)
+    location = models.PointField(blank=True, null=True, srid=4326)
+    # latitude = models.FloatField(blank=True, null=True)
+    # longitude = models.FloatField(blank=True, null=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+
+ 
