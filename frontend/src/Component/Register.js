@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useImmerReducer } from 'use-immer';
 
 //MUI 
-import { Grid, Typography, Button, TextField } from '@mui/material';
+import { Grid, Typography, Button, TextField, Snackbar } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 
 //url import
@@ -51,11 +51,13 @@ function Register() {
         emailValue: '',
         passwordValue: '',
         password2Value: '',
-        sendRequest: 0
+        sendRequest: 0,
+        openSnack: false,
+        disabledBtn: false,
     };
 
     function ReduceFunction(draft, action) {
-        switch(action.type){
+        switch (action.type) {
             case 'catchUsernameChange':
                 draft.usernameValue = action.usernameChosen;
                 break;
@@ -71,6 +73,15 @@ function Register() {
             case 'changeRequest':
                 draft.sendRequest = draft.sendRequest + 1;
                 break;
+            case 'catchOpenSnack':
+                draft.openSnack = true;
+                break;
+            case 'disabledTheBtn':
+                draft.disabledBtn = true;
+                break;
+            case 'allowTheButton':
+                draft.disabledBtn = false;
+                break;
             default:
                 break;
         }
@@ -82,7 +93,8 @@ function Register() {
     function fromSubmit(e) {
         e.preventDefault();
         console.log('The From is submit.');
-        dispatch({type: 'changeRequest'})
+        dispatch({ type: 'changeRequest' })
+        dispatch({ type: 'disabledTheBtn' })
     }
 
 
@@ -94,17 +106,17 @@ function Register() {
                     await axios.post(
                         urls.creat_user,
                         {
-                          "email": state.emailValue,
-                          "username": state.usernameValue,
-                          "password": state.passwordValue,
-                          "re_password": state.password2Value
-                        }, 
+                            "email": state.emailValue,
+                            "username": state.usernameValue,
+                            "password": state.passwordValue,
+                            "re_password": state.password2Value
+                        },
                         { cancelToken: source.token }
-                      );
-                    //   console.log(response.data);
-                    usenavigate("/");
+                    );
+                    dispatch({ type: 'catchOpenSnack' })
                 } catch (error) {
                     console.log(error);
+                    dispatch({ type: 'allowTheButton' })
                 }
             }
             SignUp();
@@ -114,62 +126,82 @@ function Register() {
         }
     }, [state.sendRequest])
 
+
+    useEffect(() => {
+        if (state.openSnack) {
+            setTimeout(() => {
+                usenavigate("/");
+            }, 1500)
+        }
+    }, [state.openSnack]);
+
     return (
-        <div className={classes.fromContainer} data-aos="zoom-in-up">
-            <form onSubmit={fromSubmit}>
-                <Grid item container justifyContent="center">
-                    <Typography variant='h4'>CREATE AN ACCOUNT</Typography>
+        <>
+            <div className={classes.fromContainer} data-aos="zoom-in-up">
+                <form onSubmit={fromSubmit}>
+                    <Grid item container justifyContent="center">
+                        <Typography variant='h4'>CREATE AN ACCOUNT</Typography>
+                    </Grid>
+                    <Grid item container style={{ marginTop: '1rem' }}>
+                        <TextField
+                            id="username"
+                            label="Username"
+                            variant="outlined"
+                            fullWidth
+                            value={state.usernameValue}
+                            onChange={(e) => dispatch({ type: 'catchUsernameChange', usernameChosen: e.target.value })}
+                        />
+                    </Grid>
+                    <Grid item container style={{ marginTop: '1rem' }}>
+                        <TextField
+                            id="email"
+                            label="Email"
+                            variant="outlined"
+                            fullWidth
+                            value={state.emailValue}
+                            onChange={(e) => dispatch({ type: 'catchEmailChange', emailChosen: e.target.value })}
+                        />
+                    </Grid>
+                    <Grid item container style={{ marginTop: '1rem' }}>
+                        <TextField
+                            id="password"
+                            label="Password"
+                            variant="outlined"
+                            type='password'
+                            fullWidth
+                            value={state.passwordValue}
+                            onChange={(e) => dispatch({ type: 'catchPasswordChange', passwordChosen: e.target.value })}
+                        />
+                    </Grid>
+                    <Grid item container style={{ marginTop: '1rem' }}>
+                        <TextField
+                            id="password2"
+                            label="Confirm Password"
+                            variant="outlined"
+                            type='password'
+                            fullWidth
+                            value={state.password2Value}
+                            onChange={(e) => dispatch({ type: 'catchPassword2Change', password2Chosen: e.target.value })}
+                        />
+                    </Grid>
+                    <Grid item container xs={8} style={{ marginTop: '1rem', marginLeft: 'auto', marginRight: 'auto' }}>
+                        <Button disabled={state.disabledBtn} className={classes.registerBtn} variant='contained' fullWidth type='submit'>SIGN UP</Button>
+                    </Grid>
+                </form>
+                <Grid item container justifyContent="center" style={{ marginTop: '1rem' }}>
+                    <Typography variant='small'>Already have an account? <span onClick={() => usenavigate('/login')} style={{ cursor: 'pointer', color: 'green' }}>SIGN IN</span></Typography>
                 </Grid>
-                <Grid item container style={{ marginTop: '1rem' }}>
-                    <TextField 
-                    id="username" 
-                    label="Username" 
-                    variant="outlined" 
-                    fullWidth
-                    value={state.usernameValue}
-                    onChange={(e) => dispatch({type: 'catchUsernameChange', usernameChosen: e.target.value})}
-                     />
-                </Grid>
-                <Grid item container style={{ marginTop: '1rem' }}>
-                    <TextField 
-                    id="email" 
-                    label="Email" 
-                    variant="outlined" 
-                    fullWidth
-                    value={state.emailValue}
-                    onChange={(e) => dispatch({type: 'catchEmailChange', emailChosen: e.target.value})}
-                     />
-                </Grid>
-                <Grid item container style={{ marginTop: '1rem' }}>
-                    <TextField 
-                    id="password" 
-                    label="Password" 
-                    variant="outlined" 
-                    type='password' 
-                    fullWidth 
-                    value={state.passwordValue}
-                    onChange={(e) => dispatch({type: 'catchPasswordChange', passwordChosen: e.target.value})}
-                    />
-                </Grid>
-                <Grid item container style={{ marginTop: '1rem' }}>
-                    <TextField 
-                    id="password2" 
-                    label="Confirm Password" 
-                    variant="outlined" 
-                    type='password' 
-                    fullWidth
-                    value={state.password2Value}
-                    onChange={(e) => dispatch({type: 'catchPassword2Change', password2Chosen: e.target.value})}
-                     />
-                </Grid>
-                <Grid item container xs={8} style={{ marginTop: '1rem', marginLeft: 'auto', marginRight: 'auto' }}>
-                    <Button className={classes.registerBtn} variant='contained' fullWidth type='submit'>SIGN UP</Button>
-                </Grid>
-            </form>
-            <Grid item container justifyContent="center" style={{ marginTop: '1rem' }}>
-                <Typography variant='small'>Already have an account? <span onClick={() => usenavigate('/login')} style={{ cursor: 'pointer', color: 'green' }}>SIGN IN</span></Typography>
-            </Grid>
-        </div>
+            </div>
+            <Snackbar
+                open={state.openSnack}
+                autoHideDuration={6000}
+                message="You have successfully create an account!"
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'center'
+                }}
+            />
+        </>
     );
 }
 

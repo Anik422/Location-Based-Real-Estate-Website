@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useMemo, useContext } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 //immer
 import { useImmerReducer } from 'use-immer';
 
 //MUI 
-import { Grid, Typography, Button, TextField, FormControlLabel, Checkbox } from '@mui/material';
+import { Grid, Typography, Button, TextField, Snackbar } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 
 //url import
@@ -32,7 +32,7 @@ const useStyle = makeStyles()(() => ({
         borderRadius: "15px",
         boxShadow: "rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px",
     },
-    loginBtn: {
+    updateProfile: {
         backgroundColor: 'green',
         color: 'white',
         fontSize: '1.1rem',
@@ -69,6 +69,8 @@ function ProfileUpdate(props) {
         uploadedPicture: [],
         profilePictureValue: props.userProfile.profilePic,
         sendRequest: 0,
+        openSnack: false,
+        disabledBtn: false,
     };
 
     function ReduceFunction(draft, action) {
@@ -90,6 +92,15 @@ function ProfileUpdate(props) {
                 break;
             case 'changeSendRequest':
                 draft.sendRequest = draft.sendRequest + 1;
+                break;
+            case 'catchOpenSnack':
+                draft.openSnack = true;
+                break;
+            case 'disabledTheBtn':
+                draft.disabledBtn = true;
+                break;
+            case 'allowTheButton':
+                draft.disabledBtn = false;
                 break;
             default:
                 break;
@@ -114,12 +125,12 @@ function ProfileUpdate(props) {
             async function UpdateProfile() {
                 const fromData = new FormData();
 
-                if(typeof state.profilePictureValue === 'string' || state .profilePictureValue === null){
+                if (typeof state.profilePictureValue === 'string' || state.profilePictureValue === null) {
                     fromData.append('agency_name', state.agencyNameValue);
                     fromData.append('phone_number', state.phoneNumberValue);
                     fromData.append('bio', state.bioValue);
                     fromData.append('seller', globalState.userId);
-                }else{
+                } else {
                     fromData.append('agency_name', state.agencyNameValue);
                     fromData.append('phone_number', state.phoneNumberValue);
                     fromData.append('bio', state.bioValue);
@@ -130,13 +141,13 @@ function ProfileUpdate(props) {
 
                 try {
                     const profile_update_url = urls.profiles + `${globalState.userId}/update/`;
-                    const response = await axios.patch(
+                    await axios.patch(
                         profile_update_url,
                         fromData,
                     );
-                    console.log(response);
-                    usenavigate(0)
+                    dispatch({ type: 'catchOpenSnack' })
                 } catch (e) {
+                    dispatch({ type: 'allowTheButton' })
                     console.log(e.response);
                 }
 
@@ -150,6 +161,7 @@ function ProfileUpdate(props) {
     function FromSubmit(e) {
         e.preventDefault();
         dispatch({ type: 'changeSendRequest' })
+        dispatch({ type: 'disabledTheBtn' })
     };
 
     function ProfilePictureDisplay() {
@@ -180,6 +192,15 @@ function ProfileUpdate(props) {
             )
         }
     };
+
+
+    useEffect(() => {
+        if (state.openSnack) {
+            setTimeout(() => {
+                usenavigate(0);
+            }, 1500)
+        }
+    }, [state.openSnack]);
 
     return (
         <>
@@ -242,10 +263,19 @@ function ProfileUpdate(props) {
                     </Grid>
 
                     <Grid item container xs={8} style={{ marginTop: '1rem', marginLeft: 'auto', marginRight: 'auto' }}>
-                        <Button className={classes.loginBtn} variant='contained' fullWidth type='submit'>UPDATE</Button>
+                        <Button className={classes.updateProfile} variant='contained' fullWidth disabled={state.disabledBtn} type='submit'>UPDATE</Button>
                     </Grid>
                 </form>
             </div>
+            <Snackbar
+                open={state.openSnack}
+                autoHideDuration={6000}
+                message="You have successfully updated your profile!"
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'center'
+                }}
+            />
         </>
     )
 }

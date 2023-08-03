@@ -5,14 +5,14 @@ import { useNavigate } from 'react-router-dom';
 
 
 //react leaflet
-import { MapContainer, Popup, TileLayer, useMap, Marker } from 'react-leaflet'
+import { MapContainer, Popup, TileLayer, Marker } from 'react-leaflet'
 import { Icon } from 'leaflet';
 
 //immer
 import { useImmerReducer } from 'use-immer';
 
 //MUI 
-import { Grid, Typography, Card, CardMedia, TextField, CircularProgress, IconButton, Breadcrumbs, Link, Button } from '@mui/material';
+import { Grid, Typography, Snackbar, CircularProgress, IconButton, Breadcrumbs, Link, Button } from '@mui/material';
 import ArrowCircleLeftIcon from '@mui/icons-material/ArrowCircleLeft';
 import ArrowCircleRightIcon from '@mui/icons-material/ArrowCircleRight';
 import { makeStyles } from 'tss-react/mui';
@@ -94,10 +94,12 @@ function ListingDetail() {
 
     const handleClickOpen = () => {
         setOpen(true);
+        dispatch({ type: 'disabledTheBtn' })
     };
 
     const handleClose = () => {
         setOpen(false);
+        dispatch({ type: 'allowTheButton' })
     };
 
     const [updateOpen, setUpdateOpen] = useState(false);
@@ -105,7 +107,7 @@ function ListingDetail() {
     const updateHandleClickOpen = () => {
         setUpdateOpen(true);
     };
-  
+
     const updateHandleClose = () => {
         setUpdateOpen(false);
     };
@@ -131,6 +133,8 @@ function ListingDetail() {
         dataIsLoading: true,
         listingInfo: '',
         sellerProfileInfo: '',
+        openSnack: false,
+        disabledBtn: false,
     };
 
     function ReduceFunction(draft, action) {
@@ -143,6 +147,15 @@ function ListingDetail() {
                 break;
             case 'loadingDone':
                 draft.dataIsLoading = false;
+                break;
+            case 'catchOpenSnack':
+                draft.openSnack = true;
+                break;
+            case 'disabledTheBtn':
+                draft.disabledBtn = true;
+                break;
+            case 'allowTheButton':
+                draft.disabledBtn = false;
                 break;
             default:
                 break;
@@ -190,6 +203,15 @@ function ListingDetail() {
         }
     }, [state.listingInfo])
 
+
+    useEffect(() => {
+        if (state.openSnack) {
+            setTimeout(() => {
+                usenavigate('/listings');
+            }, 1500)
+        }
+    }, [state.openSnack]);
+
     const listingPictures = [
         state.listingInfo.picture1,
         state.listingInfo.picture2,
@@ -230,343 +252,375 @@ function ListingDetail() {
 
     async function DeleteHandler() {
         try {
-            const response = await axios.delete(
+            await axios.delete(
                 urls.listings + `${params.id}/delete/`,
             );
-            console.log(response.data);
-            usenavigate('/listings');
+            dispatch({ type: 'catchOpenSnack' });
+
         } catch (e) {
-            console.log(e.response.data)
+            dispatch({ type: 'allowTheButton' });
+            console.log(e.response.data);
         }
     };
 
+
+
     return (
-        <div style={{ margin: '0 2rem 2rem 2rem' }}>
-            <Grid item style={{ marginTop: '1rem' }}>
-                <div role="presentation">
-                    <Breadcrumbs aria-label="breadcrumb">
-                        <Link
-                            underline="hover"
-                            color="inherit"
-                            onClick={() => usenavigate('/listings')}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            Listings
-                        </Link>
-                        <Typography
-                            color="text.primary"
-                        >
-                            {state.listingInfo.title}
+        <>
+            <div style={{ margin: '0 2rem 2rem 2rem' }}>
+                <Grid item style={{ marginTop: '1rem' }}>
+                    <div role="presentation">
+                        <Breadcrumbs aria-label="breadcrumb">
+                            <Link
+                                underline="hover"
+                                color="inherit"
+                                onClick={() => usenavigate('/listings')}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                Listings
+                            </Link>
+                            <Typography
+                                color="text.primary"
+                            >
+                                {state.listingInfo.title}
+                            </Typography>
+                        </Breadcrumbs>
+                    </div>
+                </Grid>
+                {/* image slider */}
+                {listingPictures.length > 0 ? (
+                    <Grid item container justifyContent='center' className={classes.sliderContainer}>
+                        {listingPictures.map((picture, index) => {
+                            return (
+                                <div key={index}>
+                                    {index === currentpicture ? (
+                                        <input
+                                            type="image"
+                                            img="true"
+                                            src={picture}
+                                            alt="listin image"
+                                            style={{
+                                                width: '55rem',
+                                                height: '35rem',
+                                            }}
+                                        />) : ""}
+                                </div>
+                            )
+                        })}
+                        <ArrowCircleLeftIcon onClick={PreviousPicture} className={classes.leftArrow} />
+                        <ArrowCircleRightIcon onClick={NextPicture} className={classes.rightArrow} />
+                    </Grid>
+                ) : ""}
+
+                {/* more information */}
+                <Grid
+                    item
+                    container
+                    style={{
+                        padding: '1rem',
+                        border: '1px solid black',
+                        marginTop: '1rem',
+                    }}
+                >
+                    <Grid item container direction='column' xs={7} spacing={1}>
+                        <Grid item>
+                            <Typography variant='h5'>{state.listingInfo.title}</Typography>
+                        </Grid>
+                        <Grid item>
+                            <RoomIcon />
+                            <Typography variant='h6'>{state.listingInfo.borough}</Typography>
+                        </Grid>
+                        <Grid item>
+                            <Typography variant='subtitle1'>{formattedDate}</Typography>
+                        </Grid>
+                    </Grid>
+                    <Grid item container xs={5} alignItems='center'>
+                        <Typography variant='h6' style={{ fontWeight: 'bolder', color: 'green' }}>
+                            {state.listingInfo.listing_type} | {state.listingInfo.property_status === 'Sale' ? `$${state.listingInfo.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` : `$${state.listingInfo.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} / ${state.listingInfo.rental_frequency}`}
                         </Typography>
-                    </Breadcrumbs>
-                </div>
-            </Grid>
-            {/* image slider */}
-            {listingPictures.length > 0 ? (
-                <Grid item container justifyContent='center' className={classes.sliderContainer}>
-                    {listingPictures.map((picture, index) => {
-                        return (
-                            <div key={index}>
-                                {index === currentpicture ? (
-                                    <input
-                                        type="image"
-                                        img="true"
-                                        src={picture}
-                                        alt="listin image"
-                                        style={{
-                                            width: '55rem',
-                                            height: '35rem',
-                                        }}
-                                    />) : ""}
-                            </div>
-                        )
-                    })}
-                    <ArrowCircleLeftIcon onClick={PreviousPicture} className={classes.leftArrow} />
-                    <ArrowCircleRightIcon onClick={NextPicture} className={classes.rightArrow} />
-                </Grid>
-            ) : ""}
-
-            {/* more information */}
-            <Grid
-                item
-                container
-                style={{
-                    padding: '1rem',
-                    border: '1px solid black',
-                    marginTop: '1rem',
-                }}
-            >
-                <Grid item container direction='column' xs={7} spacing={1}>
-                    <Grid item>
-                        <Typography variant='h5'>{state.listingInfo.title}</Typography>
                     </Grid>
-                    <Grid item>
-                        <RoomIcon />
-                        <Typography variant='h6'>{state.listingInfo.borough}</Typography>
-                    </Grid>
-                    <Grid item>
-                        <Typography variant='subtitle1'>{formattedDate}</Typography>
-                    </Grid>
-                </Grid>
-                <Grid item container xs={5} alignItems='center'>
-                    <Typography variant='h6' style={{ fontWeight: 'bolder', color: 'green' }}>
-                        {state.listingInfo.listing_type} | {state.listingInfo.property_status === 'Sale' ? `$${state.listingInfo.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` : `$${state.listingInfo.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} / ${state.listingInfo.rental_frequency}`}
-                    </Typography>
-                </Grid>
-            </Grid>
-            <Grid
-                item
-                container
-                justifyContent='space-between'
-                style={{
-                    padding: '1rem',
-                    border: '1px solid black',
-                    marginTop: '1rem',
-                }}>
-                {state.listingInfo.rooms ? (
-                    <Grid xs={2} item style={{ display: 'flex' }}>
-                        <Typography variant='h6'>{state.listingInfo.rooms} Rooms</Typography>
-                    </Grid>
-
-                ) : ''}
-                {state.listingInfo.furnished ? (
-                    <Grid xs={2} item style={{ display: 'flex' }}>
-                        <CheckBoxIcon style={{ color: 'green', fontSize: '2rem' }} /> <Typography variant='h6'>Furnished</Typography>
-                    </Grid>
-
-                ) : ''}
-                {state.listingInfo.pool ? (
-                    <Grid xs={2} item style={{ display: 'flex' }}>
-                        <CheckBoxIcon style={{ color: 'green', fontSize: '2rem' }} /> <Typography variant='h6'>Pool</Typography>
-                    </Grid>
-
-                ) : ''}
-                {state.listingInfo.elevator ? (
-                    <Grid xs={2} item style={{ display: 'flex' }}>
-                        <CheckBoxIcon style={{ color: 'green', fontSize: '2rem' }} /> <Typography variant='h6'>Elevator</Typography>
-                    </Grid>
-
-                ) : ''}
-                {state.listingInfo.cctv ? (
-                    <Grid xs={2} item style={{ display: 'flex' }}>
-                        <CheckBoxIcon style={{ color: 'green', fontSize: '2rem' }} /> <Typography variant='h6'>CCTV</Typography>
-                    </Grid>
-
-                ) : ''}
-                {state.listingInfo.parking ? (
-                    <Grid xs={2} item style={{ display: 'flex' }}>
-                        <CheckBoxIcon style={{ color: 'green', fontSize: '2rem' }} /> <Typography variant='h6'>Parking</Typography>
-                    </Grid>
-
-                ) : ''}
-            </Grid>
-            <Grid
-                item
-                style={{
-                    padding: '1rem',
-                    border: '1px solid black',
-                    marginTop: '1rem',
-                }}
-            >
-                <Typography variant='h5' style={{ fontWeight: 'bolder' }}>Description:</Typography>
-                <Typography variant='h5' style={{ textAlign: 'justify' }}>{state.listingInfo.description}</Typography>
-            </Grid>
-
-            {/* seller info */}
-            <Grid
-                container
-                style={{
-                    width: '50%',
-                    marginLeft: 'auto',
-                    marginRight: 'auto',
-                    marginTop: '3rem',
-                    border: '5px solid black',
-                    padding: '1rem',
-                    borderRadius: "15px",
-                    boxShadow: "rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px",
-                }}
-            >
-                <Grid item xs={6}>
-                    <input
-                        type="image"
-                        img="true"
-                        style={{ height: "10rem", width: "15rem", cursor: 'pointer' }}
-                        onClick={() => usenavigate(`/agencies/${state.sellerProfileInfo.seller}`)}
-                        src={
-                            state.sellerProfileInfo.profile_picture !== null ? state.sellerProfileInfo.profile_picture : defaultProfilePictue
-                        }
-                        alt='agency image'
-                    />
                 </Grid>
                 <Grid
                     item
                     container
-                    direction="column"
-                    justifyContent="center"
-                    xs={6}
-                >
+                    justifyContent='space-between'
+                    style={{
+                        padding: '1rem',
+                        border: '1px solid black',
+                        marginTop: '1rem',
+                    }}>
+                    {state.listingInfo.rooms ? (
+                        <Grid xs={2} item style={{ display: 'flex' }}>
+                            <Typography variant='h6'>{state.listingInfo.rooms} Rooms</Typography>
+                        </Grid>
 
-                    <Grid item>
-                        <Typography
-                            variant='h5'
-                            style={{ textAlign: 'center', marginTop: '1rem' }}
-                        >
-                            <span
-                                style={{ color: 'green', fontWeight: 'bolder', textTransform: 'uppercase', cursor: 'pointer' }}
-                                onClick={() => usenavigate(`/agencies/${state.sellerProfileInfo.seller}`)}
-                            >
-                                {state.sellerProfileInfo.agency_name}
-                            </span>
-                        </Typography>
-                    </Grid>
-                    <Grid item>
-                        <Typography
-                            variant='h5'
-                            style={{ textAlign: 'center', marginTop: '1rem' }}
-                        >
-                            <IconButton>
-                                <LocalPhoneIcon />   {state.sellerProfileInfo.phone_number}
-                            </IconButton>
-                        </Typography>
-                    </Grid>
+                    ) : ''}
+                    {state.listingInfo.furnished ? (
+                        <Grid xs={2} item style={{ display: 'flex' }}>
+                            <CheckBoxIcon style={{ color: 'green', fontSize: '2rem' }} /> <Typography variant='h6'>Furnished</Typography>
+                        </Grid>
+
+                    ) : ''}
+                    {state.listingInfo.pool ? (
+                        <Grid xs={2} item style={{ display: 'flex' }}>
+                            <CheckBoxIcon style={{ color: 'green', fontSize: '2rem' }} /> <Typography variant='h6'>Pool</Typography>
+                        </Grid>
+
+                    ) : ''}
+                    {state.listingInfo.elevator ? (
+                        <Grid xs={2} item style={{ display: 'flex' }}>
+                            <CheckBoxIcon style={{ color: 'green', fontSize: '2rem' }} /> <Typography variant='h6'>Elevator</Typography>
+                        </Grid>
+
+                    ) : ''}
+                    {state.listingInfo.cctv ? (
+                        <Grid xs={2} item style={{ display: 'flex' }}>
+                            <CheckBoxIcon style={{ color: 'green', fontSize: '2rem' }} /> <Typography variant='h6'>CCTV</Typography>
+                        </Grid>
+
+                    ) : ''}
+                    {state.listingInfo.parking ? (
+                        <Grid xs={2} item style={{ display: 'flex' }}>
+                            <CheckBoxIcon style={{ color: 'green', fontSize: '2rem' }} /> <Typography variant='h6'>Parking</Typography>
+                        </Grid>
+
+                    ) : ''}
                 </Grid>
-                {globalState.userId == state.listingInfo.seller ? (
-                    <Grid item container justifyContent='space-around'>
-                        <Button variant='contained' color='primary' onClick={updateHandleClickOpen}>Update</Button>
-
-                        <Dialog open={updateOpen} fullScreen>
-                            <ListingUpdate listingData={state.listingInfo} onClose={updateHandleClose} />
-                        </Dialog>
-
-
-                        <Button
-                            variant='contained'
-                            color='error'
-                            onClick={handleClickOpen}
-                        >Delete</Button>
-                        <Dialog
-                            fullScreen={fullScreen}
-                            open={open}
-                            onClose={handleClose}
-                            aria-labelledby="responsive-dialog-title"
-                        >
-                            <DialogTitle id="responsive-dialog-title">
-                                {"Confirm Delete?"}
-                            </DialogTitle>
-                            <DialogContent>
-                                <DialogContentText>
-                                    Are you sure you want to delete {state.listingInfo.title}?
-                                </DialogContentText>
-                            </DialogContent>
-                            <DialogActions>
-                                <Button autoFocus onClick={handleClose}>
-                                    Disagree
-                                </Button>
-                                <Button onClick={DeleteHandler} autoFocus>
-                                    Agree
-                                </Button>
-                            </DialogActions>
-                        </Dialog>
-                    </Grid>
-                ) : ""}
-            </Grid>
-
-            {/* map */}
-            <Grid item container style={{ marginTop: '1rem' }} spacing={1} justifyContent='space-between'>
                 <Grid
                     item
-                    xs={3}
                     style={{
-                        overflow: 'auto',
-                        height: '35rem'
+                        padding: '1rem',
+                        border: '1px solid black',
+                        marginTop: '1rem',
                     }}
                 >
-                    {state.listingInfo.listing_pois_within_10K.map((poi) => {
+                    <Typography variant='h5' style={{ fontWeight: 'bolder' }}>Description:</Typography>
+                    <Typography variant='h5' style={{ textAlign: 'justify' }}>{state.listingInfo.description}</Typography>
+                </Grid>
 
-                        function DegreeToRadian(coordinate) {
-                            return coordinate * Math.PI / 180;
-                        };
+                {/* seller info */}
+                <Grid
+                    container
+                    style={{
+                        width: '50%',
+                        marginLeft: 'auto',
+                        marginRight: 'auto',
+                        marginTop: '3rem',
+                        border: '5px solid black',
+                        padding: '1rem',
+                        borderRadius: "15px",
+                        boxShadow: "rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px",
+                    }}
+                >
+                    <Grid item xs={6}>
+                        <input
+                            type="image"
+                            img="true"
+                            style={{ height: "10rem", width: "15rem", cursor: 'pointer' }}
+                            onClick={() => usenavigate(`/agencies/${state.sellerProfileInfo.seller}`)}
+                            src={
+                                state.sellerProfileInfo.profile_picture !== null ? state.sellerProfileInfo.profile_picture : defaultProfilePictue
+                            }
+                            alt='agency image'
+                        />
+                    </Grid>
+                    <Grid
+                        item
+                        container
+                        direction="column"
+                        justifyContent="center"
+                        xs={6}
+                    >
 
-                        function CalculateDistance() {
-                            const latitude1 = DegreeToRadian(state.listingInfo.latitude);
-                            const longitude1 = DegreeToRadian(state.listingInfo.longitude);
+                        <Grid item>
+                            <Typography
+                                variant='h5'
+                                style={{ textAlign: 'center', marginTop: '1rem' }}
+                            >
+                                <span
+                                    style={{ color: 'green', fontWeight: 'bolder', textTransform: 'uppercase', cursor: 'pointer' }}
+                                    onClick={() => usenavigate(`/agencies/${state.sellerProfileInfo.seller}`)}
+                                >
+                                    {state.sellerProfileInfo.agency_name}
+                                </span>
+                            </Typography>
+                        </Grid>
+                        <Grid item>
+                            <Typography
+                                variant='h5'
+                                style={{ textAlign: 'center', marginTop: '1rem' }}
+                            >
+                                <IconButton>
+                                    <LocalPhoneIcon />   {state.sellerProfileInfo.phone_number}
+                                </IconButton>
+                            </Typography>
+                        </Grid>
+                    </Grid>
+                    {globalState.userId == state.listingInfo.seller ? (
+                        <Grid item container justifyContent='space-around' style={{ marginTop: '1rem' }}>
+                            <Grid item xs={4}>
+                                <Button
+                                    variant='contained'
+                                    fullWidth
+                                    color='primary'
+                                    onClick={updateHandleClickOpen}
+                                >
+                                    Update
+                                </Button>
+                                <Dialog
+                                    open={updateOpen}
+                                    fullScreen>
+                                    <ListingUpdate
+                                        listingData={state.listingInfo}
+                                        onClose={updateHandleClose}
+                                    />
+                                </Dialog>
+                            </Grid>
+                            <Grid item xs={4}>
+                                <Button
+                                    fullWidth
+                                    variant='contained'
+                                    color='error'
+                                    disabled={state.disabledBtn}
+                                    onClick={handleClickOpen}
+                                >Delete</Button>
+                                <Dialog
+                                    fullScreen={fullScreen}
+                                    open={open}
+                                    onClose={handleClose}
+                                    aria-labelledby="responsive-dialog-title"
+                                >
+                                    <DialogTitle id="responsive-dialog-title">
+                                        {"Confirm Delete?"}
+                                    </DialogTitle>
+                                    <DialogContent>
+                                        <DialogContentText>
+                                            Are you sure you want to delete <b> {state.listingInfo.title}</b>?
+                                        </DialogContentText>
+                                    </DialogContent>
+                                    <DialogActions>
+                                        <Button autoFocus onClick={handleClose}>
+                                            Disagree
+                                        </Button>
+                                        <Button onClick={DeleteHandler} autoFocus>
+                                            Agree
+                                        </Button>
+                                    </DialogActions>
+                                </Dialog>
+                            </Grid>
 
-                            const latitude2 = DegreeToRadian(poi.location.coordinates[0]);
-                            const longitude2 = DegreeToRadian(poi.location.coordinates[1]);
-                            // The formula
-                            const latDiff = latitude2 - latitude1;
-                            const lonDiff = longitude2 - longitude1;
-                            const R = 6371000 / 1000;
 
-                            const a =
-                                Math.sin(latDiff / 2) * Math.sin(latDiff / 2) +
-                                Math.cos(latitude1) *
-                                Math.cos(latitude2) *
-                                Math.sin(lonDiff / 2) *
-                                Math.sin(lonDiff / 2);
-                            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                        </Grid>
+                    ) : ""}
+                </Grid>
+                <hr style={{ marginTop: '1.5rem' }} />
 
-                            const d = R * c;
+                {/* map */}
+                <Grid item container style={{ marginTop: '1rem' }} spacing={1} justifyContent='space-between'>
+                    <Grid
+                        item
+                        xs={3}
+                        style={{
+                            overflow: 'auto',
+                            height: '35rem'
+                        }}
+                    >
+                        {state.listingInfo.listing_pois_within_10K.map((poi) => {
 
-                            const dist =
-                                Math.acos(
-                                    Math.sin(latitude1) * Math.sin(latitude2) +
+                            function DegreeToRadian(coordinate) {
+                                return coordinate * Math.PI / 180;
+                            };
+
+                            function CalculateDistance() {
+                                const latitude1 = DegreeToRadian(state.listingInfo.latitude);
+                                const longitude1 = DegreeToRadian(state.listingInfo.longitude);
+
+                                const latitude2 = DegreeToRadian(poi.location.coordinates[0]);
+                                const longitude2 = DegreeToRadian(poi.location.coordinates[1]);
+                                // The formula
+                                const latDiff = latitude2 - latitude1;
+                                const lonDiff = longitude2 - longitude1;
+                                const R = 6371000 / 1000;
+
+                                const a =
+                                    Math.sin(latDiff / 2) * Math.sin(latDiff / 2) +
                                     Math.cos(latitude1) *
                                     Math.cos(latitude2) *
-                                    Math.cos(lonDiff)
-                                ) * R;
-                            return dist.toFixed(2);
-                        };
+                                    Math.sin(lonDiff / 2) *
+                                    Math.sin(lonDiff / 2);
+                                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-                        return (
-                            <div
-                                key={poi.id}
-                                style={{
-                                    marginBottom: '0.5rem',
-                                    border: '1px solid black'
-                                }}
-                            >
-                                <Typography variant='h6'>
-                                    {poi.name}
-                                </Typography>
-                                <Typography variant='subtitle'>
-                                    {poi.type} | <span style={{ fontWeight: 'bold', color: 'green' }}>{CalculateDistance()} Kilometers</span>
-                                </Typography>
-                            </div>
-                        );
-                    })}
-                </Grid>
-                <Grid item xs={9} style={{ height: "35rem" }}>
-                    <MapContainer center={[state.listingInfo.latitude, state.listingInfo.longitude]} zoom={14} scrollWheelZoom={true}>
-                        <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                        <Marker position={[state.listingInfo.latitude, state.listingInfo.longitude]}>
-                            <Popup>{state.listingInfo.title}</Popup>
-                        </Marker>
-                        {state.listingInfo.listing_pois_within_10K.map((poi) => {
-                            const IconDisplay = () => {
-                                if (poi.type === 'University') {
-                                    return universityIcon;
-                                } else if (poi.type === 'Hospital') {
-                                    return hospitalIcon;
-                                } else if (poi.type === 'Stadium') {
-                                    return stadiumIcon;
-                                }
-                            }
+                                const d = R * c;
+
+                                const dist =
+                                    Math.acos(
+                                        Math.sin(latitude1) * Math.sin(latitude2) +
+                                        Math.cos(latitude1) *
+                                        Math.cos(latitude2) *
+                                        Math.cos(lonDiff)
+                                    ) * R;
+                                return dist.toFixed(2);
+                            };
+
                             return (
-                                <Marker key={poi.id} icon={IconDisplay()} position={[poi.location.coordinates[0], poi.location.coordinates[1]]}>
-                                    <Popup>
+                                <div
+                                    key={poi.id}
+                                    style={{
+                                        marginBottom: '0.5rem',
+                                        border: '1px solid black'
+                                    }}
+                                >
+                                    <Typography variant='h6'>
                                         {poi.name}
-                                    </Popup>
-                                </Marker>
-                            )
+                                    </Typography>
+                                    <Typography variant='subtitle'>
+                                        {poi.type} | <span style={{ fontWeight: 'bold', color: 'green' }}>{CalculateDistance()} Kilometers</span>
+                                    </Typography>
+                                </div>
+                            );
                         })}
-                    </MapContainer>
+                    </Grid>
+                    <Grid item xs={9} style={{ height: "35rem" }}>
+                        <MapContainer center={[state.listingInfo.latitude, state.listingInfo.longitude]} zoom={14} scrollWheelZoom={true}>
+                            <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            />
+                            <Marker position={[state.listingInfo.latitude, state.listingInfo.longitude]}>
+                                <Popup>{state.listingInfo.title}</Popup>
+                            </Marker>
+                            {state.listingInfo.listing_pois_within_10K.map((poi) => {
+                                const IconDisplay = () => {
+                                    if (poi.type === 'University') {
+                                        return universityIcon;
+                                    } else if (poi.type === 'Hospital') {
+                                        return hospitalIcon;
+                                    } else if (poi.type === 'Stadium') {
+                                        return stadiumIcon;
+                                    }
+                                }
+                                return (
+                                    <Marker key={poi.id} icon={IconDisplay()} position={[poi.location.coordinates[0], poi.location.coordinates[1]]}>
+                                        <Popup>
+                                            {poi.name}
+                                        </Popup>
+                                    </Marker>
+                                )
+                            })}
+                        </MapContainer>
+                    </Grid>
                 </Grid>
-            </Grid>
-        </div>
+            </div>
+            <Snackbar
+                open={state.openSnack}
+                autoHideDuration={6000}
+                message="You have successfully deleted the property!"
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'center'
+                }}
+            />
+        </>
     )
 }
 

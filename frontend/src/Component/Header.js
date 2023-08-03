@@ -1,15 +1,15 @@
-import React, { useContext } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 
 // MUI import
-import { Typography, AppBar, Toolbar, Button, Menu, MenuItem } from '@mui/material'
+import { Typography, AppBar, Toolbar, Button, Menu, MenuItem, Snackbar } from '@mui/material'
 import { makeStyles } from "tss-react/mui";
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import Slide from '@mui/material/Slide';
+
 
 
 // context
@@ -77,15 +77,16 @@ const useStyles = makeStyles()(() => ({
 }));
 
 
-const Transition = React.forwardRef(function Transition(props, ref) {
-    return <Slide direction="up" ref={ref} {...props} />;
-});
+
 
 function Header() {
     const { classes } = useStyles();
     const navigate = useNavigate();
     const globalState = useContext(StateContext);
     const globalDispatch = useContext(DispatchContext);
+
+
+    const [openSnack, setopenSnack] = useState(false);
 
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
@@ -105,7 +106,6 @@ function Header() {
 
     async function HandleLogout() {
         setAnchorEl(null);
-
         try {
             await axios.post(
                 urls.logout,
@@ -115,22 +115,30 @@ function Header() {
                 }
             );
             // console.log(response);
+            setopenSnack(true);
             globalDispatch({ type: 'logout' });
-            navigate('/');
-
         } catch (e) {
             console.log(e.response);
         }
     };
 
-    const [dialogopen, setDialogOpens] = React.useState(false);
+    const [confirmDialogopen, setconfirmDialogopen] = useState(false);
     const handleClickOpen = () => {
-        setDialogOpens(true);
+        setconfirmDialogopen(true);
     };
 
     const handleCloses = () => {
-        setDialogOpens(false);
+        setconfirmDialogopen(false);
     };
+
+    useEffect(() => {
+        if (openSnack) {
+            setTimeout(() => {
+                navigate(0);
+            }, 1500)
+        }
+    }, [openSnack]);
+
 
     return (
         <AppBar position="static" style={{ backgroundColor: 'black' }}>
@@ -148,24 +156,24 @@ function Header() {
                             Listing
                         </Typography>
                     </Button>
-                    <Button 
-                    onClick={() => navigate("/agencies")}
-                    color="inherit" 
-                    style={{ marginLeft: '2rem' }} >
+                    <Button
+                        onClick={() => navigate("/agencies")}
+                        color="inherit"
+                        style={{ marginLeft: '2rem' }} >
                         <Typography variant='h6'>
                             Agencies
                         </Typography>
                     </Button>
                 </div>
-                <div 
-                data-aos="fade-right" 
-                data-aos-easing="ease" 
-                data-aos-delay="400" 
-                className={classes.rightNav}
+                <div
+                    data-aos="fade-right"
+                    data-aos-easing="ease"
+                    data-aos-delay="400"
+                    className={classes.rightNav}
                 >
-                    <Button 
-                    className={classes.propertyBtn}
-                    onClick={() => navigate('/addproperty')}
+                    <Button
+                        className={classes.propertyBtn}
+                        onClick={() => navigate('/addproperty')}
                     >
                         Add Property
                     </Button>
@@ -192,31 +200,38 @@ function Header() {
                     >
                         <MenuItem className={classes.profileBtn} onClick={handleProfile}>Profile</MenuItem>
                         <MenuItem className={classes.logoutBtn} onClick={handleClickOpen}>Logout</MenuItem>
-                        <Dialog
-                            open={dialogopen}
-                            TransitionComponent={Transition}
-                            keepMounted
-                            onClose={handleClose}
-                            aria-describedby="alert-dialog-slide-description"
-                        >
-                            <DialogTitle>
-                                {"Confirmation Logout?"}
-                            </DialogTitle>
-                            <DialogContent>
-                                <DialogContentText id="alert-dialog-slide-description">
-                                    Are you sure want to leave?
-                                </DialogContentText>
-                            </DialogContent>
-                            <DialogActions>
-                                <Button autoFocus onClick={handleCloses}>
-                                    Disagree
-                                </Button>
-                                <Button onClick={HandleLogout} autoFocus>
-                                    Agree
-                                </Button>
-                            </DialogActions>
-                        </Dialog>
                     </Menu>
+                    <Dialog
+                        open={confirmDialogopen}
+                        onClose={handleClose}
+                        aria-describedby="alert-dialog-slide-description"
+                    >
+                        <DialogTitle>
+                            {"Confirmation Logout?"}
+                        </DialogTitle>
+                        <DialogContent>
+                            <DialogContentText id="alert-dialog-slide-description">
+                                Are you sure want to leave?
+                            </DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button autoFocus onClick={handleCloses}>
+                                Disagree
+                            </Button>
+                            <Button onClick={HandleLogout} autoFocus>
+                                Agree
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+                    <Snackbar
+                        open={openSnack}
+                        autoHideDuration={6000}
+                        message="You have successfully logged out!"
+                        anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'center'
+                        }}
+                    />
                 </div>
             </Toolbar>
         </AppBar>

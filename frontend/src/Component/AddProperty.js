@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useImmerReducer } from 'use-immer';
 
 //MUI 
-import { Grid, Typography, Button, TextField, FormControlLabel, Checkbox } from '@mui/material';
+import { Grid, Snackbar, Typography, Button, TextField, FormControlLabel, Checkbox } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 
 //react leaflet
@@ -347,7 +347,9 @@ function AddProperty() {
         userProfile: {
             agencyName: '',
             phoneNumber: '',
-        }
+        },
+        openSnack: false,
+        disabledBtn: false,
     };
 
     function ReduceFunction(draft, action) {
@@ -434,6 +436,15 @@ function AddProperty() {
             case 'catchUserProfileInfo':
                 draft.userProfile.agencyName = action.profile.agency_name;
                 draft.userProfile.phoneNumber = action.profile.phone_number;
+                break;
+            case 'catchOpenSnack':
+                draft.openSnack = true;
+                break;
+            case 'disabledTheBtn':
+                draft.disabledBtn = true;
+                break;
+            case 'allowTheButton':
+                draft.disabledBtn = false;
                 break;
             default:
                 break;
@@ -838,6 +849,7 @@ function AddProperty() {
         e.preventDefault();
         console.log('The From is submit.');
         dispatch({ type: 'changeSendRequest' })
+        dispatch({ type: 'disabledTheBtn' })
     }
 
     useEffect(() => {
@@ -875,9 +887,9 @@ function AddProperty() {
                             cancelToken: source.token
                         }
                     );
-                    // console.log(response);
-                    usenavigate('/listings')
+                    dispatch({ type: 'catchOpenSnack' })
                 } catch (e) {
+                    dispatch({ type: 'allowTheButton' })
                     console.log(e.response);
                 }
 
@@ -889,6 +901,8 @@ function AddProperty() {
         }
 
     }, [state.sendRequest]);
+
+
 
 
     // price lable display function
@@ -909,26 +923,28 @@ function AddProperty() {
 
 
     function submitButtonDisplay() {
-        console.log(globalState.userIsLogged , state.userProfile.agencyName, state.userProfile.phoneNumber);
-        if (globalState.userIsLogged && 
-            state.userProfile.agencyName !== null && 
-            state.userProfile.agencyName !== '' && 
-            state.userProfile.phoneNumber !== null && 
+        console.log(globalState.userIsLogged, state.userProfile.agencyName, state.userProfile.phoneNumber);
+        if (globalState.userIsLogged &&
+            state.userProfile.agencyName !== null &&
+            state.userProfile.agencyName !== '' &&
+            state.userProfile.phoneNumber !== null &&
             state.userProfile.phoneNumber !== '') {
             return (
                 <Button variant='contained'
                     type='submit'
                     fullWidth
+                    disabled={state.disabledBtn}
                     className={classes.registerBtn}>
+
                     SUBMIT
                 </Button>
             )
         }
-        else if (globalState.userIsLogged && 
-            (state.userProfile.agencyName === null || 
-            state.userProfile.agencyName === '' ) && (
-            state.userProfile.phoneNumber === null || 
-            state.userProfile.phoneNumber === '')) {
+        else if (globalState.userIsLogged &&
+            (state.userProfile.agencyName === null ||
+                state.userProfile.agencyName === '') && (
+                state.userProfile.phoneNumber === null ||
+                state.userProfile.phoneNumber === '')) {
             return (
                 <Button variant='outlined'
                     fullWidth
@@ -949,316 +965,337 @@ function AddProperty() {
         }
     }
 
+
+    useEffect(() => {
+        if (state.openSnack) {
+            setTimeout(() => {
+                usenavigate('/listings')
+            }, 1500)
+        }
+    }, [state.openSnack]);
+
+
     return (
-        <div className={classes.fromContainer} data-aos="zoom-in-up">
-            <form onSubmit={fromSubmit}>
-                <Grid item container justifyContent="center">
-                    <Typography variant='h4'>SUBMIT A PROPERTY</Typography>
-                </Grid>
-                <Grid item container style={{ marginTop: '1rem' }}>
-                    <TextField
-                        id="title"
-                        label="Title"
-                        required
-                        variant="standard"
-                        fullWidth
-                        value={state.titleValue}
-                        onChange={(e) => dispatch({ type: 'catchTitleChange', titleChosen: e.target.value })}
-                    />
-                </Grid>
-                <Grid item container justifyContent='space-between'>
-                    <Grid item xs={5} style={{ marginTop: '1rem' }}>
+        <>
+            <div className={classes.fromContainer} data-aos="zoom-in-up">
+                <form onSubmit={fromSubmit}>
+                    <Grid item container justifyContent="center">
+                        <Typography variant='h4'>SUBMIT A PROPERTY</Typography>
+                    </Grid>
+                    <Grid item container style={{ marginTop: '1rem' }}>
                         <TextField
-                            id="listingType"
-                            label="Listing Type"
+                            id="title"
+                            label="Title"
+                            required
+                            variant="standard"
+                            fullWidth
+                            value={state.titleValue}
+                            onChange={(e) => dispatch({ type: 'catchTitleChange', titleChosen: e.target.value })}
+                        />
+                    </Grid>
+                    <Grid item container justifyContent='space-between'>
+                        <Grid item xs={5} style={{ marginTop: '1rem' }}>
+                            <TextField
+                                id="listingType"
+                                label="Listing Type"
+                                variant="standard"
+                                required
+                                fullWidth
+                                value={state.listingTypeValue}
+                                onChange={(e) => dispatch({ type: 'catchListingTypeChange', listingTypeChosen: e.target.value })}
+                                select
+                                SelectProps={{
+                                    native: true,
+                                }}
+                            >
+                                {listingTypeOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </TextField>
+                        </Grid>
+
+                        <Grid item xs={5} style={{ marginTop: '1rem' }}>
+                            <TextField
+                                id="propertyStatus"
+                                label="Property Status"
+                                variant="standard"
+                                fullWidth
+                                required
+                                value={state.propertyStatusValue}
+                                onChange={(e) => dispatch({ type: 'catchPropertyStatusChange', propertyStatusChosen: e.target.value })}
+                                select
+                                SelectProps={{
+                                    native: true,
+                                }}
+                            >
+                                {propertyStatusoption.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </TextField>
+                        </Grid>
+                    </Grid>
+
+                    <Grid item container justifyContent='space-between'>
+                        <Grid item xs={4} style={{ marginTop: '1rem' }}>
+                            <TextField
+                                id="rentalFrequency"
+                                label="Rental Frequency"
+                                variant="standard"
+                                disabled={state.propertyStatusValue === 'Sale' ? true : false}
+                                fullWidth
+                                value={state.propertyStatusValue === 'Sale' ? "" : state.rentalFrequencyValue}
+                                onChange={(e) => dispatch({ type: 'catchRentalFrequencyChange', rentalFrequencyChosen: e.target.value })}
+                                select
+                                SelectProps={{
+                                    native: true,
+                                }}
+                            >
+                                {rentalFrequencyOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </TextField>
+                        </Grid>
+                        <Grid item xs={4} style={{ marginTop: '1rem' }}>
+                            <TextField
+                                id="price"
+                                type='number'
+                                required
+                                label={PriceDisplay()}
+                                variant="standard"
+                                fullWidth
+                                value={state.priceValue}
+                                onChange={(e) => dispatch({ type: 'catchPriceChange', priceChosen: e.target.value })}
+                            />
+                        </Grid>
+                        {state.listingTypeValue === 'Office' ? '' : (<Grid item container xs={3} style={{ marginTop: '1rem', }}>
+                            <TextField
+                                id="rooms"
+                                label="Rooms"
+                                type='number'
+                                variant="standard"
+                                fullWidth
+                                value={state.roomsValue}
+                                onChange={(e) => dispatch({ type: 'catchRoomsChange', roomsChosen: e.target.value })}
+                            />
+                        </Grid>)}
+
+                    </Grid>
+
+                    <Grid item container style={{ marginTop: '1rem' }}>
+                        <TextField
+                            id="description"
+                            label="Description"
+                            variant="outlined"
+                            required
+                            multiline
+                            rows={6}
+                            fullWidth
+                            value={state.descriptionValue}
+                            onChange={(e) => dispatch({ type: 'catchDescriptionChange', descriptionChosen: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item container justifyContent='space-between'>
+                        <Grid item xs={2} style={{ marginTop: '1rem' }}>
+                            <FormControlLabel
+                                control={<Checkbox
+                                    checked={state.furnishedValue}
+                                    onChange={(e) => dispatch({
+                                        type: 'catchFurnishedChange',
+                                        furnishedChosen: e.target.checked
+                                    })} />}
+                                label="Furnished"
+                            />
+                        </Grid>
+                        <Grid item xs={2} style={{ marginTop: '1rem' }}>
+                            <FormControlLabel
+                                control={<Checkbox
+                                    checked={state.poolValue}
+                                    onChange={(e) => dispatch({
+                                        type: 'catchPoolChange',
+                                        poolChosen: e.target.checked
+                                    })} />}
+                                label="Pool"
+                            />
+                        </Grid>
+                        <Grid item xs={2} style={{ marginTop: '1rem' }}>
+                            <FormControlLabel
+                                control={<Checkbox
+                                    checked={state.elevatorValue}
+                                    onChange={(e) => dispatch({
+                                        type: 'catchElevatorChange',
+                                        elevatorChosen: e.target.checked
+                                    })} />}
+                                label="Elevator"
+                            />
+                        </Grid>
+                        <Grid item xs={2} style={{ marginTop: '1rem' }}>
+                            <FormControlLabel
+                                control={<Checkbox
+                                    checked={state.cctvValue}
+                                    onChange={(e) => dispatch({
+                                        type: 'catchCctvChange',
+                                        cctvChosen: e.target.checked
+                                    })} />}
+                                label="Cctv"
+                            />
+                        </Grid>
+                        <Grid item xs={2} style={{ marginTop: '1rem' }}>
+                            <FormControlLabel
+                                control={<Checkbox
+                                    checked={state.parkingValue}
+                                    onChange={(e) => dispatch({
+                                        type: 'catchParkingChange',
+                                        parkingChosen: e.target.checked
+                                    })} />}
+                                label="Parking"
+                            />
+                        </Grid>
+                    </Grid>
+
+                    <Grid item container justifyContent="space-between">
+                        <Grid item xs={5} style={{ marginTop: '1rem' }}>
+                            <TextField
+                                id="area"
+                                label="Area"
+                                variant="standard"
+                                fullWidth
+                                required
+                                value={state.areaValue}
+                                onChange={(e) => dispatch({ type: 'catchAreaChange', areaChosen: e.target.value })}
+                                select
+                                SelectProps={{
+                                    native: true,
+                                }}
+                            >
+                                {areaOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </TextField>
+                        </Grid>
+                        <Grid item xs={5} style={{ marginTop: '1rem' }}>
+                            <TextField
+                                id="borough"
+                                label="Borough"
+                                variant="standard"
+                                fullWidth
+                                required
+                                value={state.boroughValue}
+                                onChange={(e) => dispatch({ type: 'catchBoroughChange', boroughChosen: e.target.value })}
+                                select
+                                SelectProps={{
+                                    native: true,
+                                }}
+                            >
+                                {state.areaValue === 'Inner London' ? innerLondonOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                )) : ""}
+                                {state.areaValue === 'Outer London' ? outerLondonOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                )) : ""}
+                            </TextField>
+                        </Grid>
+                    </Grid>
+
+                    {/* Map */}
+                    <Grid item container style={{ height: '35rem', marginTop: '1rem' }}>
+                        <MapContainer center={[51.505, -0.09]} zoom={14} scrollWheelZoom={true}>
+                            <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            />
+                            <TheMapComponent />
+                            {BoroughDisplay()}
+
+                            <Marker
+                                draggable
+                                eventHandlers={eventHandlers}
+                                position={state.markerPosition}
+                                ref={markerRef}>
+                            </Marker>
+
+                        </MapContainer>
+                    </Grid>
+
+                    <Grid item container xs={6} style={{ marginTop: '1rem', marginLeft: 'auto', marginRight: 'auto' }}>
+                        <Button
+                            className={classes.picturesBtn}
+                            variant='contained'
+                            fullWidth
+                            required
+                            component='label'
+                        >UPLOAD PICTURES (MAX 5)
+                            <input type='file'
+                                multiple
+                                accept='image/png, image/gif, image/jpeg'
+                                hidden
+                                onChange={(e) => {
+                                    dispatch({ type: 'catchUploadedpictures', picturesChosen: e.target.files })
+                                }}
+                            />
+                        </Button>
+                    </Grid>
+
+                    <Grid item container>
+                        <ul>
+                            {state.picture1Value ? <li>{state.picture1Value.name}</li> : ""}
+                            {state.picture2Value ? <li>{state.picture2Value.name}</li> : ""}
+                            {state.picture3Value ? <li>{state.picture3Value.name}</li> : ""}
+                            {state.picture4Value ? <li>{state.picture4Value.name}</li> : ""}
+                            {state.picture5Value ? <li>{state.picture5Value.name}</li> : ""}
+                        </ul>
+                    </Grid>
+
+                    <Grid item container style={{ marginTop: '1rem' }}>
+                        <TextField
+                            id="latitude"
+                            label="Latitude"
                             variant="standard"
                             required
                             fullWidth
-                            value={state.listingTypeValue}
-                            onChange={(e) => dispatch({ type: 'catchListingTypeChange', listingTypeChosen: e.target.value })}
-                            select
-                            SelectProps={{
-                                native: true,
-                            }}
-                        >
-                            {listingTypeOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </TextField>
+                            value={state.latitudeValue}
+                            onChange={(e) => dispatch({ type: 'catchLatitudeChange', latitudeChosen: e.target.value })}
+                        />
                     </Grid>
-
-                    <Grid item xs={5} style={{ marginTop: '1rem' }}>
+                    <Grid item container style={{ marginTop: '1rem' }}>
                         <TextField
-                            id="propertyStatus"
-                            label="Property Status"
+                            id="longitude"
+                            label="longitude"
                             variant="standard"
-                            fullWidth
                             required
-                            value={state.propertyStatusValue}
-                            onChange={(e) => dispatch({ type: 'catchPropertyStatusChange', propertyStatusChosen: e.target.value })}
-                            select
-                            SelectProps={{
-                                native: true,
-                            }}
-                        >
-                            {propertyStatusoption.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </TextField>
-                    </Grid>
-                </Grid>
-
-                <Grid item container justifyContent='space-between'>
-                    <Grid item xs={4} style={{ marginTop: '1rem' }}>
-                        <TextField
-                            id="rentalFrequency"
-                            label="Rental Frequency"
-                            variant="standard"
-                            disabled={state.propertyStatusValue === 'Sale' ? true : false}
                             fullWidth
-                            value={state.propertyStatusValue === 'Sale' ? "" : state.rentalFrequencyValue}
-                            onChange={(e) => dispatch({ type: 'catchRentalFrequencyChange', rentalFrequencyChosen: e.target.value })}
-                            select
-                            SelectProps={{
-                                native: true,
-                            }}
-                        >
-                            {rentalFrequencyOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </TextField>
-                    </Grid>
-                    <Grid item xs={4} style={{ marginTop: '1rem' }}>
-                        <TextField
-                            id="price"
-                            type='number'
-                            required
-                            label={PriceDisplay()}
-                            variant="standard"
-                            fullWidth
-                            value={state.priceValue}
-                            onChange={(e) => dispatch({ type: 'catchPriceChange', priceChosen: e.target.value })}
+                            value={state.longitudeValue}
+                            onChange={(e) => dispatch({ type: 'catchLongitudeChange', longitudeChosen: e.target.value })}
                         />
                     </Grid>
-                    {state.listingTypeValue === 'Office' ? '' : (<Grid item container xs={3} style={{ marginTop: '1rem', }}>
-                        <TextField
-                            id="rooms"
-                            label="Rooms"
-                            type='number'
-                            variant="standard"
-                            fullWidth
-                            value={state.roomsValue}
-                            onChange={(e) => dispatch({ type: 'catchRoomsChange', roomsChosen: e.target.value })}
-                        />
-                    </Grid>)}
 
-                </Grid>
-
-                <Grid item container style={{ marginTop: '1rem' }}>
-                    <TextField
-                        id="description"
-                        label="Description"
-                        variant="outlined"
-                        required
-                        multiline
-                        rows={6}
-                        fullWidth
-                        value={state.descriptionValue}
-                        onChange={(e) => dispatch({ type: 'catchDescriptionChange', descriptionChosen: e.target.value })}
-                    />
-                </Grid>
-
-                <Grid item container justifyContent='space-between'>
-                    <Grid item xs={2} style={{ marginTop: '1rem' }}>
-                        <FormControlLabel
-                            control={<Checkbox
-                                checked={state.furnishedValue}
-                                onChange={(e) => dispatch({
-                                    type: 'catchFurnishedChange',
-                                    furnishedChosen: e.target.checked
-                                })} />}
-                            label="Furnished"
-                        />
+                    <Grid item container xs={8} style={{ marginTop: '1rem', marginLeft: 'auto', marginRight: 'auto' }}>
+                        {submitButtonDisplay()}
                     </Grid>
-                    <Grid item xs={2} style={{ marginTop: '1rem' }}>
-                        <FormControlLabel
-                            control={<Checkbox
-                                checked={state.poolValue}
-                                onChange={(e) => dispatch({
-                                    type: 'catchPoolChange',
-                                    poolChosen: e.target.checked
-                                })} />}
-                            label="Pool"
-                        />
-                    </Grid>
-                    <Grid item xs={2} style={{ marginTop: '1rem' }}>
-                        <FormControlLabel
-                            control={<Checkbox
-                                checked={state.elevatorValue}
-                                onChange={(e) => dispatch({
-                                    type: 'catchElevatorChange',
-                                    elevatorChosen: e.target.checked
-                                })} />}
-                            label="Elevator"
-                        />
-                    </Grid>
-                    <Grid item xs={2} style={{ marginTop: '1rem' }}>
-                        <FormControlLabel
-                            control={<Checkbox
-                                checked={state.cctvValue}
-                                onChange={(e) => dispatch({
-                                    type: 'catchCctvChange',
-                                    cctvChosen: e.target.checked
-                                })} />}
-                            label="Cctv"
-                        />
-                    </Grid>
-                    <Grid item xs={2} style={{ marginTop: '1rem' }}>
-                        <FormControlLabel
-                            control={<Checkbox
-                                checked={state.parkingValue}
-                                onChange={(e) => dispatch({
-                                    type: 'catchParkingChange',
-                                    parkingChosen: e.target.checked
-                                })} />}
-                            label="Parking"
-                        />
-                    </Grid>
-                </Grid>
-
-                <Grid item container justifyContent="space-between">
-                    <Grid item xs={5} style={{ marginTop: '1rem' }}>
-                        <TextField
-                            id="area"
-                            label="Area"
-                            variant="standard"
-                            fullWidth
-                            required
-                            value={state.areaValue}
-                            onChange={(e) => dispatch({ type: 'catchAreaChange', areaChosen: e.target.value })}
-                            select
-                            SelectProps={{
-                                native: true,
-                            }}
-                        >
-                            {areaOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </TextField>
-                    </Grid>
-                    <Grid item xs={5} style={{ marginTop: '1rem' }}>
-                        <TextField
-                            id="borough"
-                            label="Borough"
-                            variant="standard"
-                            fullWidth
-                            required
-                            value={state.boroughValue}
-                            onChange={(e) => dispatch({ type: 'catchBoroughChange', boroughChosen: e.target.value })}
-                            select
-                            SelectProps={{
-                                native: true,
-                            }}
-                        >
-                            {state.areaValue === 'Inner London' ? innerLondonOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            )) : ""}
-                            {state.areaValue === 'Outer London' ? outerLondonOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            )) : ""}
-                        </TextField>
-                    </Grid>
-                </Grid>
-
-                {/* Map */}
-                <Grid item container style={{ height: '35rem', marginTop: '1rem' }}>
-                    <MapContainer center={[51.505, -0.09]} zoom={14} scrollWheelZoom={true}>
-                        <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                        <TheMapComponent />
-                        {BoroughDisplay()}
-
-                        <Marker
-                            draggable
-                            eventHandlers={eventHandlers}
-                            position={state.markerPosition}
-                            ref={markerRef}>
-                        </Marker>
-
-                    </MapContainer>
-                </Grid>
-
-                <Grid item container xs={6} style={{ marginTop: '1rem', marginLeft: 'auto', marginRight: 'auto' }}>
-                    <Button
-                        className={classes.picturesBtn}
-                        variant='contained'
-                        fullWidth
-                        required
-                        component='label'
-                    >UPLOAD PICTURES (MAX 5)
-                        <input type='file'
-                            multiple
-                            accept='image/png, image/gif, image/jpeg'
-                            hidden
-                            onChange={(e) => {
-                                dispatch({ type: 'catchUploadedpictures', picturesChosen: e.target.files })
-                            }}
-                        />
-                    </Button>
-                </Grid>
-
-                <Grid item container>
-                    <ul>
-                        {state.picture1Value ? <li>{state.picture1Value.name}</li> : ""}
-                        {state.picture2Value ? <li>{state.picture2Value.name}</li> : ""}
-                        {state.picture3Value ? <li>{state.picture3Value.name}</li> : ""}
-                        {state.picture4Value ? <li>{state.picture4Value.name}</li> : ""}
-                        {state.picture5Value ? <li>{state.picture5Value.name}</li> : ""}
-                    </ul>
-                </Grid>
-
-                <Grid item container style={{ marginTop: '1rem' }}>
-                    <TextField
-                        id="latitude"
-                        label="Latitude"
-                        variant="standard"
-                        required
-                        fullWidth
-                        value={state.latitudeValue}
-                        onChange={(e) => dispatch({ type: 'catchLatitudeChange', latitudeChosen: e.target.value })}
-                    />
-                </Grid>
-                <Grid item container style={{ marginTop: '1rem' }}>
-                    <TextField
-                        id="longitude"
-                        label="longitude"
-                        variant="standard"
-                        required
-                        fullWidth
-                        value={state.longitudeValue}
-                        onChange={(e) => dispatch({ type: 'catchLongitudeChange', longitudeChosen: e.target.value })}
-                    />
-                </Grid>
-
-                <Grid item container xs={8} style={{ marginTop: '1rem', marginLeft: 'auto', marginRight: 'auto' }}>
-                    {submitButtonDisplay()}
-                </Grid>
-            </form>
-        </div>
+                </form>
+            </div>
+             <Snackbar
+                open={state.openSnack}
+                autoHideDuration={6000}
+                message="You have successfully added your property!"
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'center'
+                }}
+            />
+        </>
     );
 }
 
