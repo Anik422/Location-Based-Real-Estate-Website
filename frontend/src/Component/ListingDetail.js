@@ -567,7 +567,8 @@ function ListingDetail() {
                                     key={poi.id}
                                     style={{
                                         marginBottom: '0.5rem',
-                                        border: '1px solid black'
+                                        border: '1px solid black',
+                                        padding: '4px'
                                     }}
                                 >
                                     <Typography variant='h6'>

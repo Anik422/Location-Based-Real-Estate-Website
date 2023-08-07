@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useImmerReducer } from 'use-immer';
 
 //MUI 
-import { Grid, Typography, Button, TextField, Snackbar } from '@mui/material';
+import { Grid, Typography, Button, TextField, Snackbar, Alert } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 
 
@@ -56,15 +56,18 @@ function Login() {
         token: '',
         openSnack: false,
         disabledBtn: false,
+        serverError: false,
     };
 
     function ReduceFunction(draft, action) {
         switch (action.type) {
             case 'catchUsernameChange':
                 draft.usernameValue = action.usernameChosen;
+                draft.serverError = false;
                 break;
             case 'catchPasswordChange':
                 draft.passwordValue = action.passwordChosen;
+                draft.serverError = false;
                 break;
             case 'changeRequest':
                 draft.sendRequest = draft.sendRequest + 1;
@@ -81,6 +84,9 @@ function Login() {
             case 'allowTheButton':
                 draft.disabledBtn = false;
                 break;
+            case 'catchServerError':
+                draft.serverError = true;
+                break;
             default:
                 break;
         }
@@ -90,7 +96,6 @@ function Login() {
 
     function fromSubmit(e) {
         e.preventDefault();
-        console.log('The From is submit.');
         dispatch({ type: 'changeRequest' })
         dispatch({ type: 'disabledTheBtn' })
     }
@@ -114,6 +119,7 @@ function Login() {
                     GlobalDispatch({ type: 'catchToken', tokenValue: response.data.auth_token })
                 } catch (error) {
                     dispatch({ type: 'allowTheButton' })
+                    dispatch({ type: 'catchServerError' })
                     console.log(error);
                 }
             }
@@ -172,15 +178,21 @@ function Login() {
                     <Grid item container justifyContent="center">
                         <Typography variant='h4'>SIGN IN</Typography>
                     </Grid>
+
+                    {state.serverError ? (<Alert severity="error" >Incorrect username or password!</Alert>) : ""}
+
+
                     <Grid item container style={{ marginTop: '1rem' }}>
                         <TextField
                             id="username"
                             label="Username"
                             variant="outlined"
                             fullWidth
+                            required
                             value={state.usernameValue}
                             onChange={(e) => dispatch({ type: 'catchUsernameChange', usernameChosen: e.target.value })}
-                        />
+                            error = {state.serverError ? true : false}
+                            />
                     </Grid>
                     <Grid item container style={{ marginTop: '1rem' }}>
                         <TextField
@@ -188,9 +200,11 @@ function Login() {
                             label="Password"
                             variant="outlined"
                             type='password'
+                            required
                             fullWidth
                             value={state.passwordValue}
                             onChange={(e) => dispatch({ type: 'catchPasswordChange', passwordChosen: e.target.value })}
+                            error = {state.serverError ? true : false}
                         />
                     </Grid>
                     <Grid item container xs={8} style={{ marginTop: '1rem', marginLeft: 'auto', marginRight: 'auto' }}>

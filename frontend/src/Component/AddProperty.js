@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useImmerReducer } from 'use-immer';
 
 //MUI 
-import { Grid, Snackbar, Typography, Button, TextField, FormControlLabel, Checkbox } from '@mui/material';
+import { Grid, Snackbar, Alert, Typography, Button, TextField, FormControlLabel, Checkbox } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 
 //react leaflet
@@ -350,24 +350,56 @@ function AddProperty() {
         },
         openSnack: false,
         disabledBtn: false,
+        titleErrors: {
+            hasErrors: false,
+            errorMessage: '',
+        },
+        listingTypeErrors: {
+            hasErrors: false,
+            errorMessage: '',
+        },
+        propertyStatusErrors: {
+            hasErrors: false,
+            errorMessage: '',
+        },
+        priceErrors: {
+            hasErrors: false,
+            errorMessage: '',
+        },
+        areaErrors: {
+            hasErrors: false,
+            errorMessage: '',
+        },
+        boroughErrors: {
+            hasErrors: false,
+            errorMessage: '',
+        },
     };
 
     function ReduceFunction(draft, action) {
         switch (action.type) {
             case 'catchTitleChange':
                 draft.titleValue = action.titleChosen;
+                draft.titleErrors.hasErrors = false;
+                draft.titleErrors.errorMessage = "";
                 break;
             case 'catchListingTypeChange':
                 draft.listingTypeValue = action.listingTypeChosen;
+                draft.listingTypeErrors.hasErrors = false;
+                draft.listingTypeErrors.errorMessage = "";
                 break;
             case 'catchDescriptionChange':
                 draft.descriptionValue = action.descriptionChosen;
                 break;
             case 'catchAreaChange':
                 draft.areaValue = action.areaChosen;
+                draft.areaErrors.hasErrors = false;
+                draft.areaErrors.errorMessage = "";
                 break;
             case 'catchBoroughChange':
                 draft.boroughValue = action.boroughChosen;
+                draft.boroughErrors.hasErrors = false;
+                draft.boroughErrors.errorMessage = "";
                 break;
 
             case 'catchLatitudeChange':
@@ -378,9 +410,13 @@ function AddProperty() {
                 break;
             case 'catchPropertyStatusChange':
                 draft.propertyStatusValue = action.propertyStatusChosen;
+                draft.propertyStatusErrors.hasErrors = false;
+                draft.propertyStatusErrors.errorMessage = "";
                 break;
             case 'catchPriceChange':
                 draft.priceValue = action.priceChosen;
+                draft.priceErrors.hasErrors = false;
+                draft.priceErrors.errorMessage = "";
                 break;
             case 'catchRentalFrequencyChange':
                 draft.rentalFrequencyValue = action.rentalFrequencyChosen;
@@ -445,6 +481,42 @@ function AddProperty() {
                 break;
             case 'allowTheButton':
                 draft.disabledBtn = false;
+                break;
+            case 'catchTitleErrors':
+                if (action.titleChosen.length === 0) {
+                    draft.titleErrors.hasErrors = true;
+                    draft.titleErrors.errorMessage = "This field must not be empty";
+                }
+                break;
+            case 'catchListingTypeErrors':
+                if (action.listingTypeChosen.length === 0) {
+                    draft.listingTypeErrors.hasErrors = true;
+                    draft.listingTypeErrors.errorMessage = "This field must not be empty";
+                }
+                break;
+            case 'catchPropertyStatusErrors':
+                if (action.propertyStatusChosen.length === 0) {
+                    draft.propertyStatusErrors.hasErrors = true;
+                    draft.propertyStatusErrors.errorMessage = "This field must not be empty";
+                }
+                break;
+            case 'catchPriceErrors':
+                if (action.priceChosen.length === 0) {
+                    draft.priceErrors.hasErrors = true;
+                    draft.priceErrors.errorMessage = "This field must not be empty";
+                }
+                break;
+            case 'catchAreaErrors':
+                if (action.areaChosen.length === 0) {
+                    draft.areaErrors.hasErrors = true;
+                    draft.areaErrors.errorMessage = "This field must not be empty";
+                }
+                break;
+            case 'catchBoroughErrors':
+                if (action.boroughChosen.length === 0) {
+                    draft.boroughErrors.hasErrors = true;
+                    draft.boroughErrors.errorMessage = "This field must not be empty";
+                }
                 break;
             default:
                 break;
@@ -847,9 +919,17 @@ function AddProperty() {
     //Form submit function
     function fromSubmit(e) {
         e.preventDefault();
-        console.log('The From is submit.');
-        dispatch({ type: 'changeSendRequest' })
-        dispatch({ type: 'disabledTheBtn' })
+        if (!state.titleErrors.hasErrors &&
+            !state.listingTypeErrors.hasErrors &&
+            !state.propertyStatusErrors.hasErrors &&
+            !state.priceErrors.hasErrors &&
+            !state.areaErrors.hasErrors &&
+            !state.boroughErrors.hasErrors &&
+            state.latitudeValue &&
+            state.latitudeValue) {
+            dispatch({ type: 'changeSendRequest' })
+            dispatch({ type: 'disabledTheBtn' })
+        }
     }
 
     useEffect(() => {
@@ -991,6 +1071,9 @@ function AddProperty() {
                             fullWidth
                             value={state.titleValue}
                             onChange={(e) => dispatch({ type: 'catchTitleChange', titleChosen: e.target.value })}
+                            onBlur={(e) => dispatch({ type: 'catchTitleErrors', titleChosen: e.target.value })}
+                            error={state.titleErrors.hasErrors ? true : false}
+                            helperText={state.titleErrors.errorMessage}
                         />
                     </Grid>
                     <Grid item container justifyContent='space-between'>
@@ -1002,11 +1085,14 @@ function AddProperty() {
                                 required
                                 fullWidth
                                 value={state.listingTypeValue}
-                                onChange={(e) => dispatch({ type: 'catchListingTypeChange', listingTypeChosen: e.target.value })}
                                 select
                                 SelectProps={{
                                     native: true,
                                 }}
+                                onChange={(e) => dispatch({ type: 'catchListingTypeChange', listingTypeChosen: e.target.value })}
+                                onBlur={(e) => dispatch({ type: 'catchListingTypeErrors', listingTypeChosen: e.target.value })}
+                                error={state.listingTypeErrors.hasErrors ? true : false}
+                                helperText={state.listingTypeErrors.errorMessage}
                             >
                                 {listingTypeOptions.map((option) => (
                                     <option key={option.value} value={option.value}>
@@ -1025,6 +1111,9 @@ function AddProperty() {
                                 required
                                 value={state.propertyStatusValue}
                                 onChange={(e) => dispatch({ type: 'catchPropertyStatusChange', propertyStatusChosen: e.target.value })}
+                                onBlur={(e) => dispatch({ type: 'catchPropertyStatusErrors', propertyStatusChosen: e.target.value })}
+                                error={state.propertyStatusErrors.hasErrors ? true : false}
+                                helperText={state.propertyStatusErrors.errorMessage}
                                 select
                                 SelectProps={{
                                     native: true,
@@ -1071,6 +1160,9 @@ function AddProperty() {
                                 fullWidth
                                 value={state.priceValue}
                                 onChange={(e) => dispatch({ type: 'catchPriceChange', priceChosen: e.target.value })}
+                                onBlur={(e) => dispatch({ type: 'catchPriceErrors', priceChosen: e.target.value })}
+                                error={state.priceErrors.hasErrors ? true : false}
+                                helperText={state.priceErrors.errorMessage}
                             />
                         </Grid>
                         {state.listingTypeValue === 'Office' ? '' : (<Grid item container xs={3} style={{ marginTop: '1rem', }}>
@@ -1092,7 +1184,6 @@ function AddProperty() {
                             id="description"
                             label="Description"
                             variant="outlined"
-                            required
                             multiline
                             rows={6}
                             fullWidth
@@ -1169,6 +1260,9 @@ function AddProperty() {
                                 required
                                 value={state.areaValue}
                                 onChange={(e) => dispatch({ type: 'catchAreaChange', areaChosen: e.target.value })}
+                                onBlur={(e) => dispatch({ type: 'catchAreaErrors', areaChosen: e.target.value })}
+                                error={state.areaErrors.hasErrors ? true : false}
+                                helperText={state.areaErrors.errorMessage}
                                 select
                                 SelectProps={{
                                     native: true,
@@ -1190,6 +1284,9 @@ function AddProperty() {
                                 required
                                 value={state.boroughValue}
                                 onChange={(e) => dispatch({ type: 'catchBoroughChange', boroughChosen: e.target.value })}
+                                onBlur={(e) => dispatch({ type: 'catchBoroughErrors', boroughChosen: e.target.value })}
+                                error={state.boroughErrors.hasErrors ? true : false}
+                                helperText={state.boroughErrors.errorMessage}
                                 select
                                 SelectProps={{
                                     native: true,
@@ -1210,6 +1307,13 @@ function AddProperty() {
                     </Grid>
 
                     {/* Map */}
+
+                    <Grid item style={{ marginTop: '1rem' }}>
+                        {state.latitudeValue && state.latitudeValue ?
+                            <Alert severity='success'>You property is located @ {state.latitudeValue}, {state.latitudeValue}</Alert> :
+                            <Alert severity='warning'>Locate your property on the map before submitting this form</Alert>}
+                    </Grid>
+
                     <Grid item container style={{ height: '35rem', marginTop: '1rem' }}>
                         <MapContainer center={[51.505, -0.09]} zoom={14} scrollWheelZoom={true}>
                             <TileLayer
@@ -1258,7 +1362,7 @@ function AddProperty() {
                         </ul>
                     </Grid>
 
-                    <Grid item container style={{ marginTop: '1rem' }}>
+                    {/* <Grid item container style={{ marginTop: '1rem' }}>
                         <TextField
                             id="latitude"
                             label="Latitude"
@@ -1279,14 +1383,14 @@ function AddProperty() {
                             value={state.longitudeValue}
                             onChange={(e) => dispatch({ type: 'catchLongitudeChange', longitudeChosen: e.target.value })}
                         />
-                    </Grid>
+                    </Grid> */}
 
                     <Grid item container xs={8} style={{ marginTop: '1rem', marginLeft: 'auto', marginRight: 'auto' }}>
                         {submitButtonDisplay()}
                     </Grid>
                 </form>
             </div>
-             <Snackbar
+            <Snackbar
                 open={state.openSnack}
                 autoHideDuration={6000}
                 message="You have successfully added your property!"
